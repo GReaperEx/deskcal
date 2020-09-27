@@ -8,7 +8,7 @@ HRESULT ExtendIntoClientAll(HWND);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    static char szWindowClass[] = "Desktop Calendar";
+    static wchar_t szWindowClass[] = L"Desktop Calendar";
 
     WNDCLASSEX wcex;
     wcex.cbSize         = sizeof(WNDCLASSEX);
@@ -24,11 +24,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, IDI_APPLICATION);
     if (!RegisterClassEx(&wcex)) {
-        MessageBox(NULL, "Call to RegisterClassEx failed!", "Desktop Calendar", 0);
+        MessageBox(NULL, L"Call to RegisterClassEx failed!", L"Desktop Calendar", 0);
         return 1;
     }
 
-    static char szTitle[] = "Desktop Calendar";
+    static wchar_t szTitle[] = L"Desktop Calendar";
 
     HWND hWnd = CreateWindowEx(
         0,
@@ -43,7 +43,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
         NULL
     );
     if (!hWnd) {
-        MessageBox(NULL, "Call to CreateWindow failed!", "Desktop Calendar", 0);
+        MessageBox(NULL, L"Call to CreateWindow failed!", L"Desktop Calendar", 0);
         return 1;
     }
     ExtendIntoClientAll(hWnd);

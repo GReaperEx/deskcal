@@ -1,4 +1,5 @@
 #include "CalTitle.h"
+#include "TextUtils.h"
 
 void CalTitle::renderGraphics(WBitmap& canvas, int x, int y, int w, int h, Color color) const
 {
@@ -9,7 +10,7 @@ void CalTitle::renderGraphics(WBitmap& canvas, int x, int y, int w, int h, Color
 void CalTitle::renderText(HWND hwnd, int x, int y, int w, int h, const FontInfo& font) const
 {
     HFONT myFont = CreateFont(font.size, 0, 0, 0, font.weight + 300, font.italic, font.underlined, font.strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
-                              CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, font.typeface.c_str());
+                              CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(font.typeface).c_str());
     HDC hdc = GetDC(hwnd);
 
     SelectObject(hdc, myFont);

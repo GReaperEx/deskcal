@@ -10,7 +10,7 @@
 class CalTitle
 {
 public:
-    CalTitle(const std::string& text)
+    CalTitle(const std::wstring& text)
     : _text(text)
     {}
 
@@ -18,7 +18,7 @@ public:
     void renderText(HWND hwnd, int x, int y, int w, int h, const FontInfo& font) const;
 
 private:
-    std::string _text;
+    std::wstring _text;
 };
 
 #endif // CAL_TITLE_H

@@ -1,6 +1,6 @@
 #include "WBitmap.h"
 
-void WBitmap::reload(const std::string& filePath) {
+void WBitmap::reload(const std::wstring& filePath) {
     if (_hbmp) {
         DeleteObject(_hbmp);
     }

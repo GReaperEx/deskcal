@@ -1,6 +1,7 @@
 #include "CalHeader.h"
+#include "TextUtils.h"
 
-CalHeader::CalHeader(const std::string& text)
+CalHeader::CalHeader(const std::wstring& text)
 : _text(text)
 {}
 
@@ -11,7 +12,7 @@ void CalHeader::renderGraphics(WBitmap& canvas, int x, int y, int w, int h, Colo
 
 void CalHeader::renderText(HWND hwnd, int x, int y, int w, int h, const FontInfo& font) const {
     HFONT myFont = CreateFont(font.size, 0, 0, 0, font.weight + 300, font.italic, font.underlined, font.strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
-                              CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, font.typeface.c_str());
+                              CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(font.typeface).c_str());
     HDC hdc = GetDC(hwnd);
 
     SelectObject(hdc, myFont);

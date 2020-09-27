@@ -22,7 +22,7 @@ public:
     } date;
 
 public:
-    CalDate(const Date& _date, const std::string& text, Color color, FontInfo font);
+    CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font);
 
     void renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const;
     void renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const;
@@ -33,7 +33,7 @@ public:
     void setFont(const FontInfo& font);
 
 private:
-    std::string _text;
+    std::wstring _text;
     Color _color;
     FontInfo _font;
 

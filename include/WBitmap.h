@@ -33,7 +33,7 @@ public:
         resize(width, height, color);
     }
 
-    WBitmap(const std::string& filePath)
+    WBitmap(const std::wstring& filePath)
     : _hbmp(0) {
         reload(filePath);
     }
@@ -44,7 +44,7 @@ public:
         }
     }
 
-    void reload(const std::string& filePath);
+    void reload(const std::wstring& filePath);
     void resize(int width, int height, BGRA color);
 
     void renderOnBmp(WBitmap& other, int x, int y);

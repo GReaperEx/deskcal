@@ -14,7 +14,7 @@
         {
             "label": "Debug rebuild",
             "type": "shell",
-            "command": "make -j6 clean-debug",
+            "command": "make clean && make -j6 debug",
             "group": {
                 "kind": "build",
                 "isDefault": true

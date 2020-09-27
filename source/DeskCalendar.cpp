@@ -1,4 +1,5 @@
 #include "DeskCalendar.h"
+#include "TextUtils.h"
 
 #include <cstdio>
 #include <ctime>
@@ -19,15 +20,26 @@ void DeskCalendar::render(HWND hwnd)
     SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
 
     WBitmap canvas(screenW, screenH, WBitmap::BGRA(0, 0, 0, 0));
-    const char* days[7] = {
-        "Monday", "Tuesday", "Wednesday", "Thurday", "Friday", "Saturday", "Sunday"
+    const wchar_t* days[7] = {
+        L"Δευτέρα", L"Τρίτη", L"Τετάρτη", L"Πέμπτη", L"Παρασκευή", L"Σάββατο", L"Κυριακή"
+    };
+    const wchar_t* months[2][12] = {
+        { L"Ιανουάριος", L"Φεβρουάριος", L"Μάρτιος", L"Απρίλιος", L"Μάιος", L"Ιούνιος",
+          L"Ιούλιος", L"Αύγουστος", L"Σεπτέμβριος", L"Οκτώβριος", L"Νοέμβριος", L"Δεκέμβριος" },
+        { L"Ιανουαρίου", L"Φεβρουαρίου", L"Μαρτίου", L"Απριλίου", L"Μαΐου", L"Ιουνίου",
+          L"Ιουλίου", L"Αυγούστου", L"Σεπτεμβρίου", L"Οκτωβρίου", L"Νοεμβρίου", L"Δεκεμβρίου" }
     };
 
-    char dateBuffer[64];
     time_t curTime = time(0);
     tm timeInfo = *localtime(&curTime);
-    strftime(dateBuffer, sizeof(dateBuffer), "Today is %B %d, %Y %A", &timeInfo);
-    CalTitle curTitle(dateBuffer);
+
+    int wDay = timeInfo.tm_wday - 1;
+    if (wDay < 0) {
+        wDay += 7;
+    }
+    std::wstring toDate = std::wstring(L"Σήμερα είναι ") + std::to_wstring(timeInfo.tm_mday) + L" " + months[1][timeInfo.tm_mon] + L" "
+                        + std::to_wstring(timeInfo.tm_year + 1900) + L", " + days[wDay];
+    CalTitle curTitle(toDate);
 
     int titleX = _headerIndexSize + _marginWide;
     int titleY = 0;
@@ -60,9 +72,9 @@ void DeskCalendar::render(HWND hwnd)
         for (int j = 0; j < 7; ++j) {
             int boxW = titleW*_columnSizes[j];
 
-            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 1, (i*7 + j) % 31 + 1), "", _defaultColor, _defaultFont);
+            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 1, (i*7 + j) % 31 + 1), L"", _defaultColor, _defaultFont);
             if (curDate.date.day == 1) {
-                CalHeader monHeader("");
+                CalHeader monHeader(L"");
                 monHeader.renderGraphics(canvas, X, Y, boxW, _headerIndexSize, _defaultColor);
                 Y += _headerIndexSize + _marginNarrow;
                 boxH -= _headerIndexSize + _marginNarrow;
@@ -115,9 +127,9 @@ void DeskCalendar::render(HWND hwnd)
         for (int j = 0; j < 7; ++j) {
             int boxW = titleW*_columnSizes[j];
 
-            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 1, (i*7 + j) % 31 + 1), "Testing the text!", _defaultColor, _defaultFont);
+            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 1, (i*7 + j) % 31 + 1), L"1 Τοστ, 2 Τοστ, 3 Τοστ, Χόρτασα!", _defaultColor, _defaultFont);
             if (curDate.date.day == 1) {
-                CalHeader monHeader("Month");
+                CalHeader monHeader(months[0][curDate.date.month - 1]);
                 monHeader.renderText(hwnd, X, Y, boxW, _headerIndexSize, _defaultFont);
                 Y += _headerIndexSize + _marginNarrow;
                 boxH -= _headerIndexSize + _marginNarrow;

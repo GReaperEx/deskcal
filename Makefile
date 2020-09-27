@@ -1,5 +1,5 @@
 CXX       := g++
-CXX_FLAGS := -Wall -std=c++11 -ggdb -MMD -MP
+CXX_FLAGS := -Wall -std=c++11 -ggdb -MMD -MP -D_DEBUG -DUNICODE -D_UNICODE
 
 BIN := bin/Debug
 OBJ	:= obj/Debug
@@ -16,8 +16,6 @@ DEPENDS := $(OBJECTS:.o=.d)
 .PHONY: debug clean-debug clean
 
 debug: $(BIN)/$(EXECUTABLE)
-
-clean-debug: clean $(BIN)/$(EXECUTABLE)
 
 $(BIN)/$(EXECUTABLE): $(OBJECTS)
 	$(CXX) $^ -o $@ $(LIBRARIES)
