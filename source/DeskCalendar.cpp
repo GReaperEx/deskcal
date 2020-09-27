@@ -82,7 +82,7 @@ void DeskCalendar::render(HWND hwnd)
                 boxH -= _headerIndexSize + _marginNarrow;
 
                 if (curDate.date == today) {
-                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, Color(255, 0, 0, 255));
+                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, _curDayColor);
                     WBitmap clipInside(boxW, boxH, Color());
                     clipInside.renderOnBmp(perimeter, _marginNarrow, _marginNarrow, false);
                     perimeter.renderOnBmp(canvas, X - _marginNarrow, Y - _marginNarrow);
@@ -98,7 +98,7 @@ void DeskCalendar::render(HWND hwnd)
                 boxH += _headerIndexSize + _marginNarrow;
             } else {
                 if (curDate.date == today) {
-                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, Color(255, 0, 0, 255));
+                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, _curDayColor);
                     WBitmap clipInside(boxW, boxH, Color());
                     clipInside.renderOnBmp(perimeter, _marginNarrow, _marginNarrow, false);
                     perimeter.renderOnBmp(canvas, X - _marginNarrow, Y - _marginNarrow);
@@ -268,7 +268,14 @@ bool DeskCalendar::reloadConfig()
                     continue;
                 }
                 _monthColor = Color(r, g, b, a);
-            }else if (input == "defaultFont") {
+            } else if (input == "curDayColor") {
+                int r, g, b, a;
+                if (!(line >> c >> r >> c >> g >> c >> b >> c >> a >> c) ||
+                    r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255) {
+                    continue;
+                }
+                _curDayColor = Color(r, g, b, a);
+            } else if (input == "defaultFont") {
                 FontInfo font;
                 line >> c;
                 if (!(std::getline(line, font.typeface, ','))) {
@@ -330,6 +337,8 @@ bool DeskCalendar::saveConfig()
     outfile << "weekendColor = " << '(' << (int)_weekendColor.r << ", " << (int)_weekendColor.g << ", " << (int)_weekendColor.b << ", " << (int)_weekendColor.a << ')' << std::endl;
     outfile << "// Color of all month headers" << std::endl;
     outfile << "monthColor = " << '(' << (int)_monthColor.r << ", " << (int)_monthColor.g << ", " << (int)_monthColor.b << ", " << (int)_monthColor.a << ')' << std::endl;
+    outfile << "// Current day highlight color" << std::endl;
+    outfile << "curDayColor = " << '(' << (int)_curDayColor.r << ", " << (int)_curDayColor.g << ", " << (int)_curDayColor.b << ", " << (int)_curDayColor.a << ')' << std::endl;
     outfile << std::endl;
     outfile << "// Default font of all blocks, except cell numbers and indices" << std::endl;
     outfile << "// (TypeFace, Size, Weight/Boldness[1, 1000], isItalic[0, 1], isUnderlined[0, 1], isStrikeout[0, 1])" << std::endl;
@@ -367,6 +376,7 @@ void DeskCalendar::resetConfig()
     _defaultColor = Color(0, 0, 255, 128);
     _weekendColor = Color(255, 192, 0, 128);
     _monthColor = Color(255, 0, 0, 128);
+    _curDayColor = Color(255, 0, 0, 255);
 
     _defaultFont = FontInfo{"Times New Roman", 18, 400, 0, 0, 0};
     _numberSize = 18;
