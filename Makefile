@@ -1,29 +1,17 @@
-CXX       := g++
-CXX_FLAGS := -Wall -std=c++11 -ggdb -MMD -MP -D_DEBUG -DUNICODE -D_UNICODE
+CORES ?= 6
 
-BIN := bin/Debug
-OBJ	:= obj/Debug
-INC := include
-SRC := source
+.PHONY: debug release clear-debug clear-release
 
-LIBRARIES  := -ldwmapi -lmsimg32 -lgdi32
-EXECUTABLE := deskcal.exe
+debug:
+	$(MAKE) -j$(CORES) -f MakeDebug.mk
 
-SOURCES := $(wildcard $(SRC)/*.cpp)
-OBJECTS := $(patsubst $(SRC)/%.cpp,$(OBJ)/%.o,$(SOURCES))
-DEPENDS := $(OBJECTS:.o=.d)
+release:
+	$(MAKE) -j$(CORES) -f MakeRelease.mk
 
-.PHONY: debug clean-debug clean
+clean-debug:
+	$(MAKE) -f MakeDebug.mk clean
+	$(MAKE) -j$(CORES) -f MakeDebug.mk
 
-debug: $(BIN)/$(EXECUTABLE)
-
-$(BIN)/$(EXECUTABLE): $(OBJECTS)
-	$(CXX) $^ -o $@ $(LIBRARIES)
-
-$(OBJ)/%.o : $(SRC)/%.cpp
-	$(CXX) $(CXX_FLAGS) -I$(INC) -c -o $@ $<
-
-clean:
-	-rm $(BIN)/$(EXECUTABLE) $(OBJ)/*
-
--include $(DEPENDS)
+clean-release:
+	$(MAKE) -f MakeRelease.mk clean
+	$(MAKE) -j$(CORES) -f MakeRelease.mk

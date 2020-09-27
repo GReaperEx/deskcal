@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Run",
+            "name": "(gdb) Run Debug",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/Debug/deskcal",
@@ -24,6 +24,27 @@
                 }
             ],
             "preLaunchTask": "Debug build"
+        },
+        {
+            "name": "(gdb) Run Release",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/Release/deskcal",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:\\msys64\\mingw64\\bin\\gdb.exe",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Release build"
         }
     ]
 }
