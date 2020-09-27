@@ -47,8 +47,8 @@ public:
     void reload(const std::wstring& filePath);
     void resize(int width, int height, BGRA color);
 
-    void renderOnBmp(WBitmap& other, int x, int y);
-    void renderOnWnd(HWND hwnd);
+    void renderOnBmp(WBitmap& other, int x, int y, bool blend = true);
+    void renderOnWnd(HWND hwnd, int x = 0, int y = 0);
 
 private:
     HBITMAP _hbmp;

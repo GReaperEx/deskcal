@@ -12,7 +12,7 @@ void WBitmap::reload(const std::wstring& filePath) {
     _height = bm.bmHeight;
 }
 
-void WBitmap::resize(int width, int height, BGRA color) {
+void WBitmap::resize(int width, int height, WBitmap::BGRA color) {
     if (_hbmp) {
         DeleteObject(_hbmp);
     }
@@ -49,7 +49,7 @@ void WBitmap::resize(int width, int height, BGRA color) {
     ReleaseDC(0, hdc);
 }
 
-void WBitmap::renderOnBmp(WBitmap& other, int x, int y) {
+void WBitmap::renderOnBmp(WBitmap& other, int x, int y, bool blend) {
     if (_hbmp) {
         HDC hdc = GetDC(0);
         HDC dstDC = CreateCompatibleDC(hdc);
@@ -57,9 +57,14 @@ void WBitmap::renderOnBmp(WBitmap& other, int x, int y) {
         HDC srcDC = CreateCompatibleDC(hdc);
         SelectObject(srcDC, _hbmp);
 
-        AlphaBlend(dstDC, x, y, _width, _height,
-                   srcDC, 0, 0, _width, _height,
-                   BLENDFUNCTION{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA});
+        if (blend) {
+            AlphaBlend(dstDC, x, y, _width, _height,
+                       srcDC, 0, 0, _width, _height,
+                       BLENDFUNCTION{AC_SRC_OVER, 0, 255, AC_SRC_ALPHA});
+        } else {
+            BitBlt(dstDC, x, y, _width, _height,
+                   srcDC, 0, 0, SRCCOPY);
+        }
 
         DeleteDC(dstDC);
         DeleteDC(srcDC);
@@ -67,13 +72,13 @@ void WBitmap::renderOnBmp(WBitmap& other, int x, int y) {
     }
 }
 
-void WBitmap::renderOnWnd(HWND hwnd) {
+void WBitmap::renderOnWnd(HWND hwnd, int x, int y) {
     if (_hbmp) {
         HDC wndDC = GetDC(hwnd);
         HDC bmpDC = CreateCompatibleDC(wndDC);
         SelectObject(bmpDC, _hbmp);
 
-        BitBlt(wndDC, 0, 0, _width, _height, bmpDC, 0, 0, SRCCOPY);
+        BitBlt(wndDC, x, y, _width, _height, bmpDC, 0, 0, SRCCOPY);
 
         DeleteDC(bmpDC);
         ReleaseDC(hwnd, wndDC);

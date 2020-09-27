@@ -33,6 +33,8 @@ void DeskCalendar::render(HWND hwnd)
     time_t curTime = time(0);
     tm timeInfo = *localtime(&curTime);
 
+    CalDate::Date today(timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday);
+
     int wDay = timeInfo.tm_wday - 1;
     if (wDay < 0) {
         wDay += 7;
@@ -72,12 +74,19 @@ void DeskCalendar::render(HWND hwnd)
         for (int j = 0; j < 7; ++j) {
             int boxW = titleW*_columnSizes[j];
 
-            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 1, (i*7 + j) % 31 + 1), L"", _defaultColor, _defaultFont);
+            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 9, (i*7 + j) % 31 + 1), L"", _defaultColor, _defaultFont);
             if (curDate.date.day == 1) {
                 CalHeader monHeader(L"");
-                monHeader.renderGraphics(canvas, X, Y, boxW, _headerIndexSize, _defaultColor);
+                monHeader.renderGraphics(canvas, X, Y, boxW, _headerIndexSize, _monthColor);
                 Y += _headerIndexSize + _marginNarrow;
                 boxH -= _headerIndexSize + _marginNarrow;
+
+                if (curDate.date == today) {
+                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, Color(255, 0, 0, 255));
+                    WBitmap clipInside(boxW, boxH, Color());
+                    clipInside.renderOnBmp(perimeter, _marginNarrow, _marginNarrow, false);
+                    perimeter.renderOnBmp(canvas, X - _marginNarrow, Y - _marginNarrow);
+                }
 
                 if (j > 4) {
                     curDate.setColor(_weekendColor);
@@ -88,6 +97,13 @@ void DeskCalendar::render(HWND hwnd)
                 Y -= _headerIndexSize + _marginNarrow;
                 boxH += _headerIndexSize + _marginNarrow;
             } else {
+                if (curDate.date == today) {
+                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, Color(255, 0, 0, 255));
+                    WBitmap clipInside(boxW, boxH, Color());
+                    clipInside.renderOnBmp(perimeter, _marginNarrow, _marginNarrow, false);
+                    perimeter.renderOnBmp(canvas, X - _marginNarrow, Y - _marginNarrow);
+                }
+
                 if (j > 4) {
                     curDate.setColor(_weekendColor);
                 }
@@ -127,7 +143,7 @@ void DeskCalendar::render(HWND hwnd)
         for (int j = 0; j < 7; ++j) {
             int boxW = titleW*_columnSizes[j];
 
-            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 1, (i*7 + j) % 31 + 1), L"1 Τοστ, 2 Τοστ, 3 Τοστ, Χόρτασα!", _defaultColor, _defaultFont);
+            CalDate curDate(CalDate::Date(2020, (i*7 + j)/31 + 9, (i*7 + j) % 31 + 1), L"1 Τοστ, 2 Τοστ, 3 Τοστ, Χόρτασα!", _defaultColor, _defaultFont);
             if (curDate.date.day == 1) {
                 CalHeader monHeader(months[0][curDate.date.month - 1]);
                 monHeader.renderText(hwnd, X, Y, boxW, _headerIndexSize, _defaultFont);
@@ -245,7 +261,14 @@ bool DeskCalendar::reloadConfig()
                     continue;
                 }
                 _weekendColor = Color(r, g, b, a);
-            } else if (input == "defaultFont") {
+            } else if (input == "monthColor") {
+                int r, g, b, a;
+                if (!(line >> c >> r >> c >> g >> c >> b >> c >> a >> c) ||
+                    r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 255) {
+                    continue;
+                }
+                _monthColor = Color(r, g, b, a);
+            }else if (input == "defaultFont") {
                 FontInfo font;
                 line >> c;
                 if (!(std::getline(line, font.typeface, ','))) {
@@ -301,10 +324,12 @@ bool DeskCalendar::saveConfig()
     outfile << "// Space between the bottom side of the screen (not including task-bar) and the window" << std::endl;
     outfile << "marginBottom = " << _marginBottom << std::endl;
     outfile << std::endl;
-    outfile << "// Default color of all blocks, except weekend cells" << std::endl;
+    outfile << "// Default color of all blocks, except weekend cells and month headers" << std::endl;
     outfile << "defaultColor = " << '(' << (int)_defaultColor.r << ", " << (int)_defaultColor.g << ", " << (int)_defaultColor.b << ", " << (int)_defaultColor.a << ')' << std::endl;
     outfile << "// Default color of all weekend cells" << std::endl;
     outfile << "weekendColor = " << '(' << (int)_weekendColor.r << ", " << (int)_weekendColor.g << ", " << (int)_weekendColor.b << ", " << (int)_weekendColor.a << ')' << std::endl;
+    outfile << "// Color of all month headers" << std::endl;
+    outfile << "monthColor = " << '(' << (int)_monthColor.r << ", " << (int)_monthColor.g << ", " << (int)_monthColor.b << ", " << (int)_monthColor.a << ')' << std::endl;
     outfile << std::endl;
     outfile << "// Default font of all blocks, except cell numbers and indices" << std::endl;
     outfile << "// (TypeFace, Size, Weight/Boldness[1, 1000], isItalic[0, 1], isUnderlined[0, 1], isStrikeout[0, 1])" << std::endl;
@@ -340,7 +365,8 @@ void DeskCalendar::resetConfig()
     _marginBottom = 50;
 
     _defaultColor = Color(0, 0, 255, 128);
-    _weekendColor = Color(255, 128, 0, 128);
+    _weekendColor = Color(255, 192, 0, 128);
+    _monthColor = Color(255, 0, 0, 128);
 
     _defaultFont = FontInfo{"Times New Roman", 18, 400, 0, 0, 0};
     _numberSize = 18;

@@ -19,6 +19,10 @@ public:
         Date(int y, int m, int d)
         : year(y), month(m), day(d)
         {}
+
+        bool operator== (const Date& other) const {
+            return year == other.year && month == other.month && day == other.day;
+        }
     } date;
 
 public:

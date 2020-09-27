@@ -54,6 +54,7 @@ private:
 
     Color _defaultColor;
     Color _weekendColor;
+    Color _monthColor;
 
     int _numberSize;
     FontInfo _defaultFont;
