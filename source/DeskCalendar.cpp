@@ -238,7 +238,7 @@ bool DeskCalendar::saveDates() const
     return true;
 }
 
-void DeskCalendar::update(HWND hwnd)
+void DeskCalendar::update()
 {
     RECT workArea;
     SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
@@ -251,7 +251,7 @@ void DeskCalendar::update(HWND hwnd)
     //int screenY = workArea.top;
     int screenW = workArea.right - workArea.left;
     int screenH = workArea.bottom - workArea.top;
-    //SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+    //SetWindowPos(_hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
 
     const wchar_t* days[7] = {
         L"Δευτέρα", L"Τρίτη", L"Τετάρτη", L"Πέμπτη", L"Παρασκευή", L"Σάββατο", L"Κυριακή"
@@ -292,11 +292,30 @@ void DeskCalendar::update(HWND hwnd)
     }
     Y += _headerIndexSize + _marginWide;
 
+    tm tmpTM = {
+        0, 0, 0, 1, 0, timeInfo.tm_year, 0, 0, 0
+    };
+    time_t tmpTime = mktime(&tmpTM);
+    tmpTM = *localtime(&tmpTime);
+
+    int curWeek = tmpTM.tm_wday - 1;
+    if (curWeek < 0) {
+        curWeek += 7;
+    }
+
+    tmpTM = {
+        0, 0, 0, _curDate.day, _curDate.month - 1, _curDate.year - 1900, 0, 0, 0
+    };
+    tmpTime = mktime(&tmpTM);
+    tmpTM = *localtime(&tmpTime);
+
+    curWeek = (curWeek + tmpTM.tm_yday)/7;
+
     _renderedIndices.clear();
     for (int i = 0; i < _rowAmount; ++i) {
         float boxH = (screenH - titleH - _headerIndexSize - 2*_marginWide)/(float)_rowAmount - _marginNarrow;
 
-        _renderedIndices.push_back(CalIndex(_curWeek + i + 1, 0, std::round(Y), _headerIndexSize, boxH));
+        _renderedIndices.push_back(CalIndex(curWeek + i + 1, 0, std::round(Y), _headerIndexSize, boxH));
         Y += boxH + _marginNarrow;
     }
     Y = titleH + _marginWide + _headerIndexSize + _marginWide;
@@ -305,7 +324,7 @@ void DeskCalendar::update(HWND hwnd)
     _renderedDates.clear();
 
     tm firstDay = {
-        0, 0, 0, 1, 0, today.year - 1900, 0, 0, 0
+        0, 0, 0, _curDate.day, _curDate.month - 1, today.year - 1900, 0, 0, 0
     };
     time_t firstTime = mktime(&firstDay);
     firstDay = *localtime(&firstTime);
@@ -314,7 +333,7 @@ void DeskCalendar::update(HWND hwnd)
         wDay += 7;
     }
 
-    curTime = firstTime - wDay*24*3600 + _curWeek*7*24*3600;
+    curTime = firstTime - wDay*24*3600;
     for (int i = 0; i < _rowAmount; ++i) {
         float boxH = (screenH - titleH - _headerIndexSize - 2*_marginWide)/(float)_rowAmount - _marginNarrow;
         X = _headerIndexSize + _marginWide;
@@ -353,7 +372,7 @@ void DeskCalendar::update(HWND hwnd)
     }
 }
 
-void DeskCalendar::render(HWND hwnd)
+void DeskCalendar::render()
 {
     RECT workArea;
     SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
@@ -366,7 +385,7 @@ void DeskCalendar::render(HWND hwnd)
     int screenY = workArea.top;
     int screenW = workArea.right - workArea.left;
     int screenH = workArea.bottom - workArea.top;
-    SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+    SetWindowPos(_hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
 
     time_t now = time(0);
     tm tmNow = *localtime(&now);
@@ -394,19 +413,19 @@ void DeskCalendar::render(HWND hwnd)
             it->renderGraphics(canvas, date.x, date.y, date.w, date.h);
         }
     }
-    canvas.renderOnWnd(hwnd);
+    canvas.renderOnWnd(_hwnd);
 
-    _renderedTitle.renderText(hwnd, _defaultFont);
+    _renderedTitle.renderText(_hwnd, _defaultFont);
     for (CalHeader& header : _renderedHeaders) {
-        header.renderText(hwnd, _defaultFont);
+        header.renderText(_hwnd, _defaultFont);
     }
     for (CalIndex& index : _renderedIndices) {
-        index.renderText(hwnd, _numberSize);
+        index.renderText(_hwnd, _numberSize);
     }
     for (DatePointer& date : _renderedDates) {
         auto it = std::lower_bound(date.ptr->begin(), date.ptr->end(), date.date);
         if (it != date.ptr->end() && it->date == date.date) {
-            it->renderText(hwnd, date.x, date.y, date.w, date.h, _numberSize);
+            it->renderText(_hwnd, date.x, date.y, date.w, date.h, _numberSize);
         }
     }
 }

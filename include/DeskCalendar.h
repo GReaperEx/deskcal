@@ -11,12 +11,18 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <ctime>
 
 class DeskCalendar
 {
 public:
-    DeskCalendar(int week) {
-        _curWeek = week;
+    DeskCalendar(HWND hwnd) {
+        _hwnd = hwnd;
+
+        time_t nowTime = time(0);
+        tm now = *localtime(&nowTime);
+        _curDate = CalDate::Date(now.tm_year + 1900, now.tm_mon + 1, now.tm_mday);
+
         loadConfig();
         loadDates();
     }
@@ -32,11 +38,14 @@ public:
     bool loadDates();
     bool saveDates() const;
 
-    void update(HWND hwnd);
-    void render(HWND hwnd);
+    void update();
+    void render();
 
-    void setCurrentWeek(int week) {
-        _curWeek = week;
+    void setCurrentDate(const CalDate::Date& newDate) {
+        _curDate = newDate;
+
+        update();
+        render();
     }
 
 private:
@@ -53,7 +62,9 @@ private:
         {}
     };
 
-    int _curWeek;
+    HWND _hwnd;
+    CalDate::Date _curDate;
+
     std::vector<CalDate> _editedDates; // sorted
     std::vector<CalDate> _dummyDates;  // sorted
     std::vector<DatePointer> _renderedDates;

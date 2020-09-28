@@ -48,10 +48,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     }
     ExtendIntoClientAll(hWnd);
 
-    DeskCalendar myCalendar(35);
-    myCalendar.update(hWnd);
-    myCalendar.render(hWnd);
+    DeskCalendar myCalendar(hWnd);
+    myCalendar.update();
+    myCalendar.render();
 
+    std::cout << CalDate(CalDate::Date(2020, 7, 6), L"Test", Color(0, 255, 0, 128), FontInfo{"Arial", 16, 400, false, false, false }) << std::endl;
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {

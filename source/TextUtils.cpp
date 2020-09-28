@@ -77,8 +77,24 @@ std::istream& read_escaped_string(std::istream& inStream, std::string& toRead)
 {
     std::string converted;
     bool escaped = false;
+    char c;
 
-    for (char c : toRead) {
+    if (!(inStream >> c)) {
+        return inStream;
+    }
+    if (c != '\"') {
+        inStream.setstate(std::ios::failbit);
+        return inStream;
+    }
+
+    while (true) {
+        if (!inStream.get(c)) {
+            return inStream;
+        }
+        if (c == '\"') {
+            break;
+        }
+
         if (escaped) {
             escaped = false;
             switch (c)

@@ -8,7 +8,7 @@ std::ostream& operator<< (std::ostream& outStream, const Color& toWrite)
 std::istream& operator>> (std::istream& inStream, Color& toRead)
 {
     int r, g, b, a;
-    int c1, c2, c3, c4, c5;
+    char c1, c2, c3, c4, c5;
 
     if (!(inStream >> c1 >> r >> c2 >> g >> c3 >> b >> c4 >> a >> c5)) {
         return inStream;
