@@ -6,10 +6,10 @@ std::string utf16_to_utf8(const std::wstring& wstr)
 {
     std::string str;
 
-    size_t reqSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+    size_t reqSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.size(), NULL, 0, NULL, NULL);
     if (reqSize > 0) {
-        str.resize(reqSize);
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], reqSize, NULL, NULL);
+        str.resize(reqSize, 0);
+        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.size(), &str[0], reqSize, NULL, NULL);
     }
 
     return str;
@@ -19,10 +19,10 @@ std::wstring utf8_to_utf16(const std::string& str)
 {
     std::wstring wstr;
 
-    size_t reqSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+    size_t reqSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.size(), NULL, 0);
     if (reqSize > 0) {
-        wstr.resize(reqSize);
-        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], reqSize);
+        wstr.resize(reqSize, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.size(), &wstr[0], reqSize);
     }
 
     return wstr;
@@ -91,7 +91,7 @@ std::istream& read_escaped_string(std::istream& inStream, std::string& toRead)
         if (!inStream.get(c)) {
             return inStream;
         }
-        if (c == '\"') {
+        if (c == '\"' && !escaped) {
             break;
         }
 

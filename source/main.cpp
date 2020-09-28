@@ -52,7 +52,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     myCalendar.update();
     myCalendar.render();
 
-    std::cout << CalDate(CalDate::Date(2020, 7, 6), L"Test", Color(0, 255, 0, 128), FontInfo{"Arial", 16, 400, false, false, false }) << std::endl;
+    myCalendar.saveDates();
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
