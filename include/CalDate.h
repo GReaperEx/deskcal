@@ -25,11 +25,14 @@ public:
             return year == other.year && month == other.month && day == other.day;
         }
 
+        bool operator< (const Date& other) const;
+
         friend std::ostream& operator<< (std::ostream& outStream, const Date& toWrite);
         friend std::istream& operator>> (std::istream& inStream, Date& toRead);
     } date;
 
 public:
+    CalDate() {}
     CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font)
     : date(_date), _text(text), _color(color), _font(font)
     {}
@@ -37,7 +40,12 @@ public:
     void renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const;
     void renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const;
 
-    bool operator< (const CalDate& other) const;
+    bool operator< (const Date& otherDate) const {
+        return date < otherDate;
+    }
+    bool operator< (const CalDate& other) const {
+        return date < other.date;
+    }
 
     void setColor(Color color) {
         _color = color;

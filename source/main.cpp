@@ -48,7 +48,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     }
     ExtendIntoClientAll(hWnd);
 
-    DeskCalendar myCalendar;
+    DeskCalendar myCalendar(35);
+    myCalendar.update(hWnd);
     myCalendar.render(hWnd);
 
 

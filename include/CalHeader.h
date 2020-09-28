@@ -10,11 +10,11 @@
 class CalHeader
 {
 public:
-    CalHeader(const std::wstring& text, int x, int y, int w, int h)
-    : _text(text), _x(x), _y(y), _w(w), _h(h)
+    CalHeader(const std::wstring& text, int x, int y, int w, int h, Color color)
+    : _text(text), _x(x), _y(y), _w(w), _h(h), _color(color)
     {}
 
-    void renderGraphics(WBitmap& canvas, Color color) const;
+    void renderGraphics(WBitmap& canvas) const;
     void renderText(HWND hwnd, const FontInfo& font) const;
 
 private:
@@ -23,6 +23,7 @@ private:
     int _y;
     int _w;
     int _h;
+    Color _color;
 };
 
 #endif // CAL_HEADER_H

@@ -1,8 +1,8 @@
 #include "CalHeader.h"
 #include "TextUtils.h"
 
-void CalHeader::renderGraphics(WBitmap& canvas, Color color) const {
-    WBitmap calSquare(_w, _h, color);
+void CalHeader::renderGraphics(WBitmap& canvas) const {
+    WBitmap calSquare(_w, _h, _color);
     calSquare.renderOnBmp(canvas, _x, _y);
 }
 

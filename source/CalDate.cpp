@@ -33,23 +33,23 @@ void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) con
     ReleaseDC(hwnd, hdc);
 }
 
-bool CalDate::operator< (const CalDate& other) const
+bool CalDate::Date::operator< (const Date& other) const
 {
-    if (date.year < other.date.year) {
+    if (year < other.year) {
         return true;
     }
-    if (date.year > other.date.year) {
+    if (year > other.year) {
         return false;
     }
 
-    if (date.month < other.date.month) {
+    if (month < other.month) {
         return true;
     }
-    if (date.month > other.date.month) {
+    if (month > other.month) {
         return false;
     }
 
-    return date.day < other.date.day;
+    return day < other.day;
 }
 
 std::ostream& operator<< (std::ostream& outStream, const CalDate& toWrite)

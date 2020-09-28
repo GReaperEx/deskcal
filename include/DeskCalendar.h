@@ -15,20 +15,29 @@
 class DeskCalendar
 {
 public:
-    DeskCalendar() {
+    DeskCalendar(int week) {
+        _curWeek = week;
         loadConfig();
+        loadDates();
     }
 
     ~DeskCalendar() {
         //saveConfig();
+        saveDates();
     }
 
-    void render(HWND hwnd);
     bool loadConfig();
     bool saveConfig() const;
 
     bool loadDates();
     bool saveDates() const;
+
+    void update(HWND hwnd);
+    void render(HWND hwnd);
+
+    void setCurrentWeek(int week) {
+        _curWeek = week;
+    }
 
 private:
     struct DatePointer {
@@ -36,7 +45,12 @@ private:
         int y;
         int w;
         int h;
-        CalDate* ptr;
+        CalDate::Date date;
+        std::vector<CalDate>* ptr;
+
+        DatePointer(int _x, int _y, int _w, int _h, CalDate::Date _date, std::vector<CalDate>* _ptr)
+        : x(_x), y(_y), w(_w), h(_h), date(_date), ptr(_ptr)
+        {}
     };
 
     int _curWeek;

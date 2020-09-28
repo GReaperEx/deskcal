@@ -4,170 +4,7 @@
 #include <cstdio>
 #include <ctime>
 #include <cmath>
-
-void DeskCalendar::render(HWND hwnd)
-{
-    RECT workArea;
-    SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-    workArea.left += _marginLeft;
-    workArea.top += _marginTop;
-    workArea.right -= _marginRight;
-    workArea.bottom -= _marginBottom;
-
-    int screenX = workArea.left;
-    int screenY = workArea.top;
-    int screenW = workArea.right - workArea.left;
-    int screenH = workArea.bottom - workArea.top;
-    SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
-
-    WBitmap canvas(screenW, screenH, WBitmap::BGRA(0, 0, 0, 0));
-    const wchar_t* days[7] = {
-        L"Δευτέρα", L"Τρίτη", L"Τετάρτη", L"Πέμπτη", L"Παρασκευή", L"Σάββατο", L"Κυριακή"
-    };
-    const wchar_t* months[2][12] = {
-        { L"Ιανουάριος", L"Φεβρουάριος", L"Μάρτιος", L"Απρίλιος", L"Μάιος", L"Ιούνιος",
-          L"Ιούλιος", L"Αύγουστος", L"Σεπτέμβριος", L"Οκτώβριος", L"Νοέμβριος", L"Δεκέμβριος" },
-        { L"Ιανουαρίου", L"Φεβρουαρίου", L"Μαρτίου", L"Απριλίου", L"Μαΐου", L"Ιουνίου",
-          L"Ιουλίου", L"Αυγούστου", L"Σεπτεμβρίου", L"Οκτωβρίου", L"Νοεμβρίου", L"Δεκεμβρίου" }
-    };
-
-    time_t curTime = time(0);
-    tm timeInfo = *localtime(&curTime);
-
-    CalDate::Date today(timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday);
-
-    int wDay = timeInfo.tm_wday - 1;
-    if (wDay < 0) {
-        wDay += 7;
-    }
-    std::wstring toDate = std::wstring(L"Σήμερα είναι ") + std::to_wstring(timeInfo.tm_mday) + L" " + months[1][timeInfo.tm_mon] + L" "
-                        + std::to_wstring(timeInfo.tm_year + 1900) + L", " + days[wDay];
-
-    int titleX = _headerIndexSize + _marginWide;
-    int titleY = 0;
-    int titleW = screenW - _headerIndexSize - _marginWide;
-    int titleH = _titleSize;
-
-    CalTitle curTitle(toDate, titleX, titleY, titleW, titleH);
-
-    float Y = 0, X = _headerIndexSize + _marginWide;
-    curTitle.renderGraphics(canvas, _defaultColor);
-    Y += titleH + _marginWide;
-
-    for (int i = 0; i < 7; ++i) {
-        int boxH = _headerIndexSize;
-        float boxW = titleW*_columnSizes[i] - _marginNarrow;
-
-        CalHeader curHeader(days[i], std::round(X), std::round(Y), std::round(boxW), boxH);
-        curHeader.renderGraphics(canvas, _defaultColor);
-
-        X += boxW + _marginNarrow;
-    }
-    Y += _headerIndexSize + _marginWide;
-
-    for (int i = 0; i < _rowAmount; ++i) {
-        int boxH = (screenH - (_rowAmount - 1)*_marginNarrow - 3*_headerIndexSize - 2*_marginWide)/_rowAmount;
-        X = 0;
-
-        CalIndex curIndex(i + 1, std::round(X), std::round(Y), _headerIndexSize, boxH);
-        curIndex.renderGraphics(canvas, _defaultColor);
-        X = _headerIndexSize + _marginWide;
-
-        for (int j = 0; j < 7; ++j) {
-            float boxW = titleW*_columnSizes[j] - _marginNarrow;
-
-            CalDate curDate(CalDate::Date(2020, (i*7 + j + 30)/31 + 8, (i*7 + j + 30) % 31 + 1), L"", _defaultColor, _defaultFont);
-            if (curDate.date.day == 1) {
-                CalHeader monHeader(L"", std::round(X), std::round(Y), std::round(boxW), _headerIndexSize);
-                monHeader.renderGraphics(canvas, _monthColor);
-                Y += _headerIndexSize + _marginNarrow;
-                boxH -= _headerIndexSize + _marginNarrow;
-
-                if (curDate.date == today) {
-                    WBitmap perimeter(std::round(boxW) + _marginNarrow*2, boxH + _marginNarrow*2, _curDayColor);
-                    WBitmap clipInside(std::round(boxW), boxH, Color());
-                    clipInside.renderOnBmp(perimeter, _marginNarrow, _marginNarrow, false);
-                    perimeter.renderOnBmp(canvas, std::round(X - _marginNarrow), std::round(Y - _marginNarrow));
-                }
-
-                if (j > 4) {
-                    curDate.setColor(_weekendColor);
-                }
-                curDate.renderGraphics(canvas, std::round(X), std::round(Y), std::round(boxW), boxH);
-
-                X += boxW + _marginNarrow;
-                Y -= _headerIndexSize + _marginNarrow;
-                boxH += _headerIndexSize + _marginNarrow;
-            } else {
-                if (curDate.date == today) {
-                    WBitmap perimeter(boxW + _marginNarrow*2, boxH + _marginNarrow*2, _curDayColor);
-                    WBitmap clipInside(boxW, boxH, Color());
-                    clipInside.renderOnBmp(perimeter, _marginNarrow, _marginNarrow, false);
-                    perimeter.renderOnBmp(canvas, std::round(X - _marginNarrow), std::round(Y - _marginNarrow));
-                }
-
-                if (j > 4) {
-                    curDate.setColor(_weekendColor);
-                }
-                curDate.renderGraphics(canvas, std::round(X), std::round(Y), std::round(boxW), boxH);
-
-                X += boxW + _marginNarrow;
-            }
-        }
-        Y += boxH + _marginNarrow;
-    }
-    canvas.renderOnWnd(hwnd);
-
-    Y = 0;
-    X = _headerIndexSize + _marginWide;
-    curTitle.renderText(hwnd, _defaultFont);
-    Y += titleH + _marginWide;
-
-    for (int i = 0; i < 7; ++i) {
-        int boxH = _headerIndexSize;
-        int boxW = std::round(titleW*_columnSizes[i]) - _marginNarrow;
-
-        CalHeader curHeader(days[i], std::round(X), std::round(Y), std::round(boxW), boxH);
-        curHeader.renderText(hwnd, _defaultFont);
-
-        X += boxW + _marginNarrow;
-    }
-    Y += _headerIndexSize + _marginWide;
-
-    for (int i = 0; i < _rowAmount; ++i) {
-        int boxH = (screenH - (_rowAmount - 1)*_marginNarrow - 3*_headerIndexSize - 2*_marginWide)/_rowAmount;
-        X = 0;
-
-        CalIndex curIndex(i + 1, std::round(X), std::round(Y), _headerIndexSize, boxH);
-        curIndex.renderText(hwnd, _numberSize);
-        X = _headerIndexSize + _marginWide;
-
-        for (int j = 0; j < 7; ++j) {
-            int boxW = std::round(titleW*_columnSizes[j]) - _marginNarrow;
-
-            CalDate curDate(CalDate::Date(2020, (i*7 + j + 30)/31 + 8, (i*7 + j + 30) % 31 + 1), L"1 Τοστ, 2 Τοστ, 3 Τοστ, Χόρτασα!", _defaultColor, _defaultFont);
-            if (curDate.date.day == 1) {
-                CalHeader monHeader(months[0][curDate.date.month - 1], std::round(X), std::round(Y), std::round(boxW), _headerIndexSize);
-                monHeader.renderText(hwnd, _defaultFont);
-                Y += _headerIndexSize + _marginNarrow;
-                boxH -= _headerIndexSize + _marginNarrow;
-
-                if (j > 4) {
-                    curDate.setColor(_weekendColor);
-                }
-                curDate.renderText(hwnd, std::round(X), std::round(Y), std::round(boxW), boxH, _numberSize);
-
-                X += boxW + _marginNarrow;
-                Y -= _headerIndexSize + _marginNarrow;
-                boxH += _headerIndexSize + _marginNarrow;
-            } else {
-                curDate.renderText(hwnd, std::round(X), std::round(Y), std::round(boxW), boxH, _numberSize);
-                X += boxW + _marginNarrow;
-            }
-        }
-        Y += boxH + _marginNarrow;
-    }
-}
+#include <algorithm>
 
 bool DeskCalendar::loadConfig()
 {
@@ -366,16 +203,210 @@ bool DeskCalendar::loadDates()
     if (!infile.is_open()) {
         return false;
     }
+    _editedDates.clear();
 
     std::string lineStr;
     while (std::getline(infile, lineStr)) {
+        CalDate newCalDate;
+        std::stringstream line(lineStr);
+        if (!(line >> newCalDate)) {
+            continue;
+        }
 
+        _editedDates.push_back(newCalDate);
     }
 
+    std::sort(_editedDates.begin(), _editedDates.end());
     return true;
 }
 
 bool DeskCalendar::saveDates() const
 {
+    std::ofstream outfile("deskcal.sav.tmp");
+    if (!outfile.is_open()) {
+        return false;
+    }
 
+    for (auto calDate : _editedDates) {
+        outfile << calDate << std::endl;
+    }
+
+    outfile.close();
+    remove("deskcal.sav");
+    rename("deskcal.sav.tmp", "deskcal.sav");
+
+    return true;
+}
+
+void DeskCalendar::update(HWND hwnd)
+{
+    RECT workArea;
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+    workArea.left += _marginLeft;
+    workArea.top += _marginTop;
+    workArea.right -= _marginRight;
+    workArea.bottom -= _marginBottom;
+
+    //int screenX = workArea.left;
+    //int screenY = workArea.top;
+    int screenW = workArea.right - workArea.left;
+    int screenH = workArea.bottom - workArea.top;
+    //SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+
+    const wchar_t* days[7] = {
+        L"Δευτέρα", L"Τρίτη", L"Τετάρτη", L"Πέμπτη", L"Παρασκευή", L"Σάββατο", L"Κυριακή"
+    };
+    const wchar_t* months[2][12] = {
+        { L"Ιανουάριος", L"Φεβρουάριος", L"Μάρτιος", L"Απρίλιος", L"Μάιος", L"Ιούνιος",
+          L"Ιούλιος", L"Αύγουστος", L"Σεπτέμβριος", L"Οκτώβριος", L"Νοέμβριος", L"Δεκέμβριος" },
+        { L"Ιανουαρίου", L"Φεβρουαρίου", L"Μαρτίου", L"Απριλίου", L"Μαΐου", L"Ιουνίου",
+          L"Ιουλίου", L"Αυγούστου", L"Σεπτεμβρίου", L"Οκτωβρίου", L"Νοεμβρίου", L"Δεκεμβρίου" }
+    };
+
+    time_t curTime = time(0);
+    tm timeInfo = *localtime(&curTime);
+    CalDate::Date today(timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday);
+
+    int wDay = timeInfo.tm_wday - 1;
+    if (wDay < 0) {
+        wDay += 7;
+    }
+    std::wstring toDate = std::wstring(L"Σήμερα είναι ") + std::to_wstring(timeInfo.tm_mday) + L" " + months[1][timeInfo.tm_mon] + L" "
+                        + std::to_wstring(timeInfo.tm_year + 1900) + L", " + days[wDay];
+
+    int titleX = _headerIndexSize + _marginWide;
+    int titleY = 0;
+    int titleW = screenW - _headerIndexSize - _marginWide;
+    int titleH = _titleSize;
+
+    _renderedTitle = CalTitle(toDate, titleX, titleY, titleW - _marginNarrow, titleH);
+
+    _renderedHeaders.clear();
+    float Y = titleH + _marginWide, X = _headerIndexSize + _marginWide;
+    for (int i = 0; i < 7; ++i) {
+        int boxH = _headerIndexSize;
+        float boxW = titleW*_columnSizes[i] - _marginNarrow;
+
+        _renderedHeaders.push_back(CalHeader(days[i], std::round(X), std::round(Y), std::round(boxW), boxH, _defaultColor));
+        X += boxW + _marginNarrow;
+    }
+    Y += _headerIndexSize + _marginWide;
+
+    _renderedIndices.clear();
+    for (int i = 0; i < _rowAmount; ++i) {
+        float boxH = (screenH - titleH - _headerIndexSize - 2*_marginWide)/(float)_rowAmount - _marginNarrow;
+
+        _renderedIndices.push_back(CalIndex(_curWeek + i + 1, 0, std::round(Y), _headerIndexSize, boxH));
+        Y += boxH + _marginNarrow;
+    }
+    Y = titleH + _marginWide + _headerIndexSize + _marginWide;
+
+    _dummyDates.clear();
+    _renderedDates.clear();
+
+    tm firstDay = {
+        0, 0, 0, 1, 0, today.year - 1900, 0, 0, 0
+    };
+    time_t firstTime = mktime(&firstDay);
+    firstDay = *localtime(&firstTime);
+    wDay = firstDay.tm_wday - 1;
+    if (wDay < 0) {
+        wDay += 7;
+    }
+
+    curTime = firstTime - wDay*24*3600 + _curWeek*7*24*3600;
+    for (int i = 0; i < _rowAmount; ++i) {
+        float boxH = (screenH - titleH - _headerIndexSize - 2*_marginWide)/(float)_rowAmount - _marginNarrow;
+        X = _headerIndexSize + _marginWide;
+        for (int j = 0; j < 7; ++j) {
+            tm curDay = *localtime(&curTime);
+            CalDate::Date date(curDay.tm_year + 1900, curDay.tm_mon + 1, curDay.tm_mday);
+            float boxW = titleW*_columnSizes[j] - _marginNarrow;
+            Color boxColor = _defaultColor;
+            if (curDay.tm_wday == 0 || curDay.tm_wday == 6) {
+                boxColor = _weekendColor;
+            }
+
+            auto it = std::lower_bound(_editedDates.begin(), _editedDates.end(), date);
+            if (it != _editedDates.end() && it->date == date) {
+                if (date.day == 1) {
+                    _renderedHeaders.emplace_back(months[0][date.month - 1], X, Y, boxW, _headerIndexSize, _monthColor);
+                    _renderedDates.emplace_back(X, Y + _headerIndexSize + _marginNarrow, boxW, boxH - _headerIndexSize - _marginNarrow, date, &_editedDates);
+                } else {
+                    _renderedDates.emplace_back(X, Y, boxW, boxH, date, &_editedDates);
+                }
+            } else {
+                if (date.day == 1) {
+                    _renderedHeaders.emplace_back(months[0][date.month - 1], X, Y, boxW, _headerIndexSize, _monthColor);
+                    _dummyDates.emplace_back(date, L"", boxColor, _defaultFont);
+                    _renderedDates.emplace_back(X, Y + _headerIndexSize + _marginNarrow, boxW, boxH - _headerIndexSize - _marginNarrow, date, &_dummyDates);
+                } else {
+                    _dummyDates.emplace_back(date, L"", boxColor, _defaultFont);
+                    _renderedDates.emplace_back(X, Y, boxW, boxH, date, &_dummyDates);
+                }
+            }
+
+            X += boxW + _marginNarrow;
+            curTime += 24*3600;
+        }
+        Y += boxH + _marginNarrow;
+    }
+}
+
+void DeskCalendar::render(HWND hwnd)
+{
+    RECT workArea;
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+    workArea.left += _marginLeft;
+    workArea.top += _marginTop;
+    workArea.right -= _marginRight;
+    workArea.bottom -= _marginBottom;
+
+    int screenX = workArea.left;
+    int screenY = workArea.top;
+    int screenW = workArea.right - workArea.left;
+    int screenH = workArea.bottom - workArea.top;
+    SetWindowPos(hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+
+    time_t now = time(0);
+    tm tmNow = *localtime(&now);
+    CalDate::Date today(tmNow.tm_year + 1900, tmNow.tm_mon + 1, tmNow.tm_mday);
+
+    WBitmap canvas(screenW, screenH, Color());
+
+    _renderedTitle.renderGraphics(canvas, _defaultColor);
+    for (CalHeader& header : _renderedHeaders) {
+        header.renderGraphics(canvas);
+    }
+    for (CalIndex& index : _renderedIndices) {
+        index.renderGraphics(canvas, _defaultColor);
+    }
+    for (DatePointer& date : _renderedDates) {
+        auto it = std::lower_bound(date.ptr->begin(), date.ptr->end(), date.date);
+        if (it != date.ptr->end() && it->date == date.date) {
+            if (date.date == today) {
+                WBitmap frame(date.w + _marginNarrow*2, date.h + _marginNarrow*2, _curDayColor);
+                WBitmap hollow(date.w, date.h, Color());
+
+                hollow.renderOnBmp(frame, _marginNarrow, _marginNarrow, false);
+                frame.renderOnBmp(canvas, date.x - _marginNarrow, date.y - _marginNarrow);
+            }
+            it->renderGraphics(canvas, date.x, date.y, date.w, date.h);
+        }
+    }
+    canvas.renderOnWnd(hwnd);
+
+    _renderedTitle.renderText(hwnd, _defaultFont);
+    for (CalHeader& header : _renderedHeaders) {
+        header.renderText(hwnd, _defaultFont);
+    }
+    for (CalIndex& index : _renderedIndices) {
+        index.renderText(hwnd, _numberSize);
+    }
+    for (DatePointer& date : _renderedDates) {
+        auto it = std::lower_bound(date.ptr->begin(), date.ptr->end(), date.date);
+        if (it != date.ptr->end() && it->date == date.date) {
+            it->renderText(hwnd, date.x, date.y, date.w, date.h, _numberSize);
+        }
+    }
 }
