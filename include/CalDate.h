@@ -16,6 +16,7 @@ public:
         int month;
         int day;
 
+        Date() {}
         Date(int y, int m, int d)
         : year(y), month(m), day(d)
         {}
@@ -23,18 +24,31 @@ public:
         bool operator== (const Date& other) const {
             return year == other.year && month == other.month && day == other.day;
         }
+
+        friend std::ostream& operator<< (std::ostream& outStream, const Date& toWrite);
+        friend std::istream& operator>> (std::istream& inStream, Date& toRead);
     } date;
 
 public:
-    CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font);
+    CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font)
+    : date(_date), _text(text), _color(color), _font(font)
+    {}
 
     void renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const;
     void renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const;
 
     bool operator< (const CalDate& other) const;
 
-    void setColor(Color color);
-    void setFont(const FontInfo& font);
+    void setColor(Color color) {
+        _color = color;
+    }
+
+    void setFont(const FontInfo& font) {
+        _font = font;
+    }
+
+    friend std::ostream& operator<< (std::ostream& outStream, const CalDate& toWrite);
+    friend std::istream& operator>> (std::istream& inStream, CalDate& toRead);
 
 private:
     std::wstring _text;

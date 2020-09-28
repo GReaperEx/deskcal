@@ -2,6 +2,7 @@
 #define FONT_INFO_H
 
 #include <string>
+#include <iostream>
 
 struct FontInfo
 {
@@ -13,6 +14,9 @@ struct FontInfo
     bool italic;
     bool underlined;
     bool strikeout;
+
+    friend std::ostream& operator<< (std::ostream& outStream, const FontInfo& toWrite);
+    friend std::istream& operator>> (std::istream& inStream, FontInfo& toRead);
 };
 
 #endif // FONT_INFO_H

@@ -2,10 +2,6 @@
 
 #include "TextUtils.h"
 
-CalDate::CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font)
-: date(_date), _text(text), _color(color), _font(font)
-{}
-
 void CalDate::renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const
 {
     WBitmap calSquare(w, h, _color);
@@ -56,12 +52,50 @@ bool CalDate::operator< (const CalDate& other) const
     return date.day < other.date.day;
 }
 
-void CalDate::setColor(Color color)
+std::ostream& operator<< (std::ostream& outStream, const CalDate& toWrite)
 {
-    _color = color;
+    return write_escaped_string(outStream << '(' << toWrite.date << ", " << toWrite._font << ", " << toWrite._color << ", ", utf16_to_utf8(toWrite._text)) << ')';
 }
 
-void CalDate::setFont(const FontInfo& font)
+std::istream& operator>> (std::istream& inStream, CalDate& toRead)
 {
-    _font = font;
+    CalDate::Date date;
+    FontInfo font;
+    Color color;
+    std::string text;
+    char c[5];
+
+    if (!read_escaped_string(inStream >> c[0] >> date >> c[1] >> font >> c[2] >> color >> c[3], text)) {
+        return inStream;
+    }
+
+    toRead.date = date;
+    toRead._font = font;
+    toRead._color = color;
+    toRead._text = utf8_to_utf16(text);
+
+    return inStream;
+}
+
+std::ostream& operator<< (std::ostream& outStream, const CalDate::Date& toWrite)
+{
+    return outStream << '(' << toWrite.year << ", " << toWrite.month << ", " << toWrite.day << ')';
+}
+
+std::istream& operator>> (std::istream& inStream, CalDate::Date& toRead)
+{
+    int y, m, d;
+    char c[4];
+
+    if (!(inStream >> c[0] >> y >> c[1] >> m >> c[2] >> d >> c[3])) {
+        return inStream;
+    }
+    if (c[0] != '(' || c[1] != ',' || c[2] != ',' || c[3] != ')' ||
+        y < 1900 || m <= 0 || m > 12 || d <= 0 || d > 31) {
+        inStream.setstate(std::ios::failbit);
+        return inStream;
+    }
+
+    toRead = { y, m, d };
+    return inStream;
 }

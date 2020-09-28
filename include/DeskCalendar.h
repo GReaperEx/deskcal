@@ -16,12 +16,19 @@ class DeskCalendar
 {
 public:
     DeskCalendar() {
-        reloadConfig();
+        loadConfig();
+    }
+
+    ~DeskCalendar() {
+        //saveConfig();
     }
 
     void render(HWND hwnd);
-    bool reloadConfig();
-    bool saveConfig();
+    bool loadConfig();
+    bool saveConfig() const;
+
+    bool loadDates();
+    bool saveDates() const;
 
 private:
     struct DatePointer {
@@ -36,6 +43,10 @@ private:
     std::vector<CalDate> _editedDates; // sorted
     std::vector<CalDate> _dummyDates;  // sorted
     std::vector<DatePointer> _renderedDates;
+
+    CalTitle _renderedTitle;
+    std::vector<CalHeader> _renderedHeaders;
+    std::vector<CalIndex> _renderedIndices;
 
     void resetConfig();
 

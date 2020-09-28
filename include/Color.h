@@ -2,6 +2,7 @@
 #define COLOR_H
 
 #include "WBitmap.h"
+#include <iostream>
 
 struct Color
 {
@@ -21,6 +22,9 @@ struct Color
     operator WBitmap::BGRA() const {
         return WBitmap::BGRA(r, g, b, a);
     }
+
+    friend std::ostream& operator<< (std::ostream& outStream, const Color& toWrite);
+    friend std::istream& operator>> (std::istream& inStream, Color& toRead);
 };
 
 #endif // COLOR_H
