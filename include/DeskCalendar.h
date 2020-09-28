@@ -27,11 +27,6 @@ public:
         loadDates();
     }
 
-    ~DeskCalendar() {
-        //saveConfig();
-        saveDates();
-    }
-
     bool loadConfig();
     bool saveConfig() const;
 
@@ -75,29 +70,29 @@ private:
 
     void resetConfig();
 
-    // Config variables start here
+    struct ConfigVars {
+        int headerIndexSize;
+        int titleSize;
 
-    int _headerIndexSize;
-    int _titleSize;
+        int marginNarrow;
+        int marginWide;
 
-    int _marginNarrow;
-    int _marginWide;
+        int marginLeft;
+        int marginTop;
+        int marginRight;
+        int marginBottom;
 
-    int _marginLeft;
-    int _marginTop;
-    int _marginRight;
-    int _marginBottom;
+        Color defaultColor;
+        Color weekendColor;
+        Color monthColor;
+        Color curDayColor;
 
-    Color _defaultColor;
-    Color _weekendColor;
-    Color _monthColor;
-    Color _curDayColor;
+        int numberSize;
+        FontInfo defaultFont;
 
-    int _numberSize;
-    FontInfo _defaultFont;
-
-    float _columnSizes[7];
-    int _rowAmount;
+        float columnSizes[7];
+        int rowAmount;
+    }_config;
 };
 
 

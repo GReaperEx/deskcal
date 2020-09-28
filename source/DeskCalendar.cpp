@@ -37,79 +37,79 @@ bool DeskCalendar::loadConfig()
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _headerIndexSize = newVal;
+                _config.headerIndexSize = newVal;
             } else if (input == "titleSize") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _titleSize = newVal;
+                _config.titleSize = newVal;
             } else if (input == "marginNarrow") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _marginNarrow = newVal;
+                _config.marginNarrow = newVal;
             } else if (input == "marginWide") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _marginWide = newVal;
+                _config.marginWide = newVal;
             } else if (input == "marginLeft") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _marginLeft = newVal;
+                _config.marginLeft = newVal;
             } else if (input == "marginTop") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _marginTop = newVal;
+                _config.marginTop = newVal;
             } else if (input == "marginRight") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _marginRight = newVal;
+                _config.marginRight = newVal;
             } else if (input == "marginBottom") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _marginBottom = newVal;
+                _config.marginBottom = newVal;
             } else if (input == "numberSize") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _numberSize = newVal;
+                _config.numberSize = newVal;
             } else if (input == "defaultColor") {
-                line >> _defaultColor;
+                line >> _config.defaultColor;
             } else if (input == "weekendColor") {
-                line >> _weekendColor;
+                line >> _config.weekendColor;
             } else if (input == "monthColor") {
-                line >> _monthColor;
+                line >> _config.monthColor;
             } else if (input == "curDayColor") {
-                line >> _curDayColor;
+                line >> _config.curDayColor;
             } else if (input == "defaultFont") {
-                line >> _defaultFont;
+                line >> _config.defaultFont;
             } else if (input == "columnSizes") {
                 float sizes[7];
                 if (!(line >> c >> sizes[0] >> c >> sizes[1] >> c >> sizes[2] >> c >> sizes[3] >> c >> sizes[4] >> c >> sizes[5] >> c >> sizes[6] >> c)) {
                     continue;
                 }
                 for (int i = 0; i < 7; ++i) {
-                    _columnSizes[i] = sizes[i];
+                    _config.columnSizes[i] = sizes[i];
                 }
             } else if (input == "rowAmount") {
                 int newVal;
                 if (!(line >> newVal) || newVal <= 0) {
                     continue;
                 }
-                _rowAmount = newVal;
+                _config.rowAmount = newVal;
             }
         }
     }
@@ -124,44 +124,46 @@ bool DeskCalendar::saveConfig() const
     }
 
     outfile << "// Height of Day headers and width of Week indices" << std::endl;
-    outfile << "headerIndexSize = " << _headerIndexSize << std::endl;
+    outfile << "headerIndexSize = " << _config.headerIndexSize << std::endl;
     outfile << "// Height of Title-bar" << std::endl;
-    outfile << "titleSize = " << _titleSize << std::endl;
+    outfile << "titleSize = " << _config.titleSize << std::endl;
     outfile << std::endl;
     outfile << "// Space between calendar cells" << std::endl;
-    outfile << "marginNarrow = " << _marginNarrow << std::endl;
+    outfile << "marginNarrow = " << _config.marginNarrow << std::endl;
     outfile << "// Space between calendar cell area and headers/indices, also between headers and title-bar" << std::endl;
-    outfile << "marginWide = " << _marginWide << std::endl;
+    outfile << "marginWide = " << _config.marginWide << std::endl;
     outfile << std::endl;
     outfile << "// Space between the left side of the screen and the window" << std::endl;
-    outfile << "marginLeft = " << _marginLeft << std::endl;
+    outfile << "marginLeft = " << _config.marginLeft << std::endl;
     outfile << "// Space between the top side of the screen and the window" << std::endl;
-    outfile << "marginTop = " << _marginTop << std::endl;
+    outfile << "marginTop = " << _config.marginTop << std::endl;
     outfile << "// Space between the right side of the screen and the window" << std::endl;
-    outfile << "marginRight = " << _marginRight << std::endl;
+    outfile << "marginRight = " << _config.marginRight << std::endl;
     outfile << "// Space between the bottom side of the screen (not including task-bar) and the window" << std::endl;
-    outfile << "marginBottom = " << _marginBottom << std::endl;
+    outfile << "marginBottom = " << _config.marginBottom << std::endl;
     outfile << std::endl;
+    outfile << "// (Red[0, 255], Green[0, 255], Blue[0, 255], Alpha[0, 255])" << std::endl;
     outfile << "// Default color of all blocks, except weekend cells and month headers" << std::endl;
-    outfile << "defaultColor = " << _defaultColor << std::endl;
+    outfile << "defaultColor = " << _config.defaultColor << std::endl;
     outfile << "// Default color of all weekend cells" << std::endl;
-    outfile << "weekendColor = " << _weekendColor << std::endl;
+    outfile << "weekendColor = " << _config.weekendColor << std::endl;
     outfile << "// Color of all month headers" << std::endl;
-    outfile << "monthColor = " << _monthColor << std::endl;
+    outfile << "monthColor = " << _config.monthColor << std::endl;
     outfile << "// Current day highlight color" << std::endl;
-    outfile << "curDayColor = " << _curDayColor << std::endl;
+    outfile << "curDayColor = " << _config.curDayColor << std::endl;
     outfile << std::endl;
     outfile << "// Default font of all blocks, except cell numbers and indices" << std::endl;
     outfile << "// (TypeFace, Size, Weight/Boldness[1, 1000], isItalic[0, 1], isUnderlined[0, 1], isStrikeout[0, 1])" << std::endl;
-    outfile << "defaultFont = " << _defaultFont << std::endl;
+    outfile << "defaultFont = " << _config.defaultFont << std::endl;
     outfile << "// Font size for cell and index numbers" << std::endl;
-    outfile << "numberSize = " << _numberSize << std::endl;
+    outfile << "numberSize = " << _config.numberSize << std::endl;
     outfile << std::endl;
     outfile << "// Proportional widths for all 7 columns, must add up to 1" << std::endl;
-    outfile << "columnSizes = " << '(' << _columnSizes[0] << ", " << _columnSizes[1] << ", " << _columnSizes[2] << ", " << _columnSizes[3] << ", "
-                                       << _columnSizes[4] << ", " << _columnSizes[5] << ", " << _columnSizes[6] << ')' << std::endl;
+    outfile << "columnSizes = " << '(' << _config.columnSizes[0] << ", " << _config.columnSizes[1] << ", " << _config.columnSizes[2] << ", "
+                                       << _config.columnSizes[3] << ", " << _config.columnSizes[4] << ", " << _config.columnSizes[5] << ", "
+                                       << _config.columnSizes[6] << ')' << std::endl;
     outfile << "// Maximum amount of rows on screen" << std::endl;
-    outfile << "rowAmount = " << _rowAmount << std::endl;
+    outfile << "rowAmount = " << _config.rowAmount << std::endl;
 
     outfile.close();
     remove("deskcal.cfg");
@@ -172,29 +174,29 @@ bool DeskCalendar::saveConfig() const
 
 void DeskCalendar::resetConfig()
 {
-    _headerIndexSize = 24;
-    _titleSize = 40;
+    _config.headerIndexSize = 24;
+    _config.titleSize = 40;
 
-    _marginNarrow = 2;
-    _marginWide = 6;
+    _config.marginNarrow = 2;
+    _config.marginWide = 6;
 
-    _marginLeft = 100;
-    _marginTop = 50;
-    _marginRight = 50;
-    _marginBottom = 50;
+    _config.marginLeft = 100;
+    _config.marginTop = 50;
+    _config.marginRight = 50;
+    _config.marginBottom = 50;
 
-    _defaultColor = Color(0, 0, 255, 128);
-    _weekendColor = Color(255, 192, 0, 128);
-    _monthColor = Color(255, 0, 0, 128);
-    _curDayColor = Color(255, 0, 0, 255);
+    _config.defaultColor = Color(0, 0, 255, 128);
+    _config.weekendColor = Color(255, 192, 0, 128);
+    _config.monthColor = Color(255, 0, 0, 128);
+    _config.curDayColor = Color(255, 0, 0, 255);
 
-    _defaultFont = FontInfo{"Times New Roman", 18, 400, 0, 0, 0};
-    _numberSize = 18;
+    _config.defaultFont = FontInfo{"Times New Roman", 18, 400, 0, 0, 0};
+    _config.numberSize = 20;
 
     for (int i = 0; i < 7; ++i) {
-        _columnSizes[i] = 0.142857;
+        _config.columnSizes[i] = 0.142857;
     }
-    _rowAmount = 5;
+    _config.rowAmount = 5;
 }
 
 bool DeskCalendar::loadDates()
@@ -242,10 +244,10 @@ void DeskCalendar::update()
 {
     RECT workArea;
     SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-    workArea.left += _marginLeft;
-    workArea.top += _marginTop;
-    workArea.right -= _marginRight;
-    workArea.bottom -= _marginBottom;
+    workArea.left += _config.marginLeft;
+    workArea.top += _config.marginTop;
+    workArea.right -= _config.marginRight;
+    workArea.bottom -= _config.marginBottom;
 
     //int screenX = workArea.left;
     //int screenY = workArea.top;
@@ -274,23 +276,23 @@ void DeskCalendar::update()
     std::wstring toDate = std::wstring(L"Σήμερα είναι ") + std::to_wstring(timeInfo.tm_mday) + L" " + months[1][timeInfo.tm_mon] + L" "
                         + std::to_wstring(timeInfo.tm_year + 1900) + L", " + days[wDay];
 
-    int titleX = _headerIndexSize + _marginWide;
+    int titleX = _config.headerIndexSize + _config.marginWide;
     int titleY = 0;
-    int titleW = screenW - _headerIndexSize - _marginWide;
-    int titleH = _titleSize;
+    int titleW = screenW - _config.headerIndexSize - _config.marginWide;
+    int titleH = _config.titleSize;
 
-    _renderedTitle = CalTitle(toDate, titleX, titleY, titleW - _marginNarrow, titleH);
+    _renderedTitle = CalTitle(toDate, titleX, titleY, titleW - _config.marginNarrow, titleH);
 
     _renderedHeaders.clear();
-    float Y = titleH + _marginWide, X = _headerIndexSize + _marginWide;
+    float Y = titleH + _config.marginWide, X = _config.headerIndexSize + _config.marginWide;
     for (int i = 0; i < 7; ++i) {
-        int boxH = _headerIndexSize;
-        float boxW = titleW*_columnSizes[i] - _marginNarrow;
+        int boxH = _config.headerIndexSize;
+        float boxW = titleW*_config.columnSizes[i] - _config.marginNarrow;
 
-        _renderedHeaders.push_back(CalHeader(days[i], std::round(X), std::round(Y), std::round(boxW), boxH, _defaultColor));
-        X += boxW + _marginNarrow;
+        _renderedHeaders.push_back(CalHeader(days[i], std::round(X), std::round(Y), std::round(boxW), boxH, _config.defaultColor));
+        X += boxW + _config.marginNarrow;
     }
-    Y += _headerIndexSize + _marginWide;
+    Y += _config.headerIndexSize + _config.marginWide;
 
     tm tmpTM = {
         0, 0, 0, 1, 0, timeInfo.tm_year, 0, 0, 0
@@ -312,13 +314,13 @@ void DeskCalendar::update()
     curWeek = (curWeek + tmpTM.tm_yday)/7;
 
     _renderedIndices.clear();
-    for (int i = 0; i < _rowAmount; ++i) {
-        float boxH = (screenH - titleH - _headerIndexSize - 2*_marginWide)/(float)_rowAmount - _marginNarrow;
+    for (int i = 0; i < _config.rowAmount; ++i) {
+        float boxH = (screenH - titleH - _config.headerIndexSize - 2*_config.marginWide)/(float)_config.rowAmount - _config.marginNarrow;
 
-        _renderedIndices.push_back(CalIndex(curWeek + i + 1, 0, std::round(Y), _headerIndexSize, boxH));
-        Y += boxH + _marginNarrow;
+        _renderedIndices.push_back(CalIndex((curWeek + i) % 52 + 1, 0, std::round(Y), _config.headerIndexSize, boxH));
+        Y += boxH + _config.marginNarrow;
     }
-    Y = titleH + _marginWide + _headerIndexSize + _marginWide;
+    Y = titleH + _config.marginWide + _config.headerIndexSize + _config.marginWide;
 
     _dummyDates.clear();
     _renderedDates.clear();
@@ -334,41 +336,45 @@ void DeskCalendar::update()
     }
 
     curTime = firstTime - wDay*24*3600;
-    for (int i = 0; i < _rowAmount; ++i) {
-        float boxH = (screenH - titleH - _headerIndexSize - 2*_marginWide)/(float)_rowAmount - _marginNarrow;
-        X = _headerIndexSize + _marginWide;
+    for (int i = 0; i < _config.rowAmount; ++i) {
+        float boxH = (screenH - titleH - _config.headerIndexSize - 2*_config.marginWide)/(float)_config.rowAmount - _config.marginNarrow;
+        X = _config.headerIndexSize + _config.marginWide;
         for (int j = 0; j < 7; ++j) {
             tm curDay = *localtime(&curTime);
             CalDate::Date date(curDay.tm_year + 1900, curDay.tm_mon + 1, curDay.tm_mday);
-            float boxW = titleW*_columnSizes[j] - _marginNarrow;
-            Color boxColor = _defaultColor;
+            float boxW = titleW*_config.columnSizes[j] - _config.marginNarrow;
+            Color boxColor = _config.defaultColor;
             if (curDay.tm_wday == 0 || curDay.tm_wday == 6) {
-                boxColor = _weekendColor;
+                boxColor = _config.weekendColor;
             }
 
             auto it = std::lower_bound(_editedDates.begin(), _editedDates.end(), date);
             if (it != _editedDates.end() && it->date == date) {
                 if (date.day == 1) {
-                    _renderedHeaders.emplace_back(months[0][date.month - 1], X, Y, boxW, _headerIndexSize, _monthColor);
-                    _renderedDates.emplace_back(X, Y + _headerIndexSize + _marginNarrow, boxW, boxH - _headerIndexSize - _marginNarrow, date, &_editedDates);
+                    _renderedHeaders.emplace_back(std::wstring(months[0][date.month - 1]) + L" " + std::to_wstring(date.year),
+                                                  X, Y, boxW, _config.headerIndexSize, _config.monthColor);
+                    _renderedDates.emplace_back(X, Y + _config.headerIndexSize + _config.marginNarrow, boxW,
+                                                boxH - _config.headerIndexSize - _config.marginNarrow, date, &_editedDates);
                 } else {
                     _renderedDates.emplace_back(X, Y, boxW, boxH, date, &_editedDates);
                 }
             } else {
                 if (date.day == 1) {
-                    _renderedHeaders.emplace_back(months[0][date.month - 1], X, Y, boxW, _headerIndexSize, _monthColor);
-                    _dummyDates.emplace_back(date, L"", boxColor, _defaultFont);
-                    _renderedDates.emplace_back(X, Y + _headerIndexSize + _marginNarrow, boxW, boxH - _headerIndexSize - _marginNarrow, date, &_dummyDates);
+                    _renderedHeaders.emplace_back(std::wstring(months[0][date.month - 1]) + L" " + std::to_wstring(date.year),
+                                                  X, Y, boxW, _config.headerIndexSize, _config.monthColor);
+                    _dummyDates.emplace_back(date, L"", boxColor, _config.defaultFont);
+                    _renderedDates.emplace_back(X, Y + _config.headerIndexSize + _config.marginNarrow, boxW,
+                                                boxH - _config.headerIndexSize - _config.marginNarrow, date, &_dummyDates);
                 } else {
-                    _dummyDates.emplace_back(date, L"", boxColor, _defaultFont);
+                    _dummyDates.emplace_back(date, L"", boxColor, _config.defaultFont);
                     _renderedDates.emplace_back(X, Y, boxW, boxH, date, &_dummyDates);
                 }
             }
 
-            X += boxW + _marginNarrow;
+            X += boxW + _config.marginNarrow;
             curTime += 24*3600;
         }
-        Y += boxH + _marginNarrow;
+        Y += boxH + _config.marginNarrow;
     }
 }
 
@@ -376,16 +382,16 @@ void DeskCalendar::render()
 {
     RECT workArea;
     SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-    workArea.left += _marginLeft;
-    workArea.top += _marginTop;
-    workArea.right -= _marginRight;
-    workArea.bottom -= _marginBottom;
+    workArea.left += _config.marginLeft;
+    workArea.top += _config.marginTop;
+    workArea.right -= _config.marginRight;
+    workArea.bottom -= _config.marginBottom;
 
     int screenX = workArea.left;
     int screenY = workArea.top;
     int screenW = workArea.right - workArea.left;
     int screenH = workArea.bottom - workArea.top;
-    SetWindowPos(_hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+    SetWindowPos(_hwnd, HWND_BOTTOM, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
 
     time_t now = time(0);
     tm tmNow = *localtime(&now);
@@ -393,39 +399,39 @@ void DeskCalendar::render()
 
     WBitmap canvas(screenW, screenH, Color());
 
-    _renderedTitle.renderGraphics(canvas, _defaultColor);
+    _renderedTitle.renderGraphics(canvas, _config.defaultColor);
     for (CalHeader& header : _renderedHeaders) {
         header.renderGraphics(canvas);
     }
     for (CalIndex& index : _renderedIndices) {
-        index.renderGraphics(canvas, _defaultColor);
+        index.renderGraphics(canvas, _config.defaultColor);
     }
     for (DatePointer& date : _renderedDates) {
         auto it = std::lower_bound(date.ptr->begin(), date.ptr->end(), date.date);
         if (it != date.ptr->end() && it->date == date.date) {
             if (date.date == today) {
-                WBitmap frame(date.w + _marginNarrow*2, date.h + _marginNarrow*2, _curDayColor);
+                WBitmap frame(date.w + _config.marginNarrow*2, date.h + _config.marginNarrow*2, _config.curDayColor);
                 WBitmap hollow(date.w, date.h, Color());
 
-                hollow.renderOnBmp(frame, _marginNarrow, _marginNarrow, false);
-                frame.renderOnBmp(canvas, date.x - _marginNarrow, date.y - _marginNarrow);
+                hollow.renderOnBmp(frame, _config.marginNarrow, _config.marginNarrow, false);
+                frame.renderOnBmp(canvas, date.x - _config.marginNarrow, date.y - _config.marginNarrow);
             }
             it->renderGraphics(canvas, date.x, date.y, date.w, date.h);
         }
     }
     canvas.renderOnWnd(_hwnd);
 
-    _renderedTitle.renderText(_hwnd, _defaultFont);
+    _renderedTitle.renderText(_hwnd, _config.defaultFont);
     for (CalHeader& header : _renderedHeaders) {
-        header.renderText(_hwnd, _defaultFont);
+        header.renderText(_hwnd, _config.defaultFont);
     }
     for (CalIndex& index : _renderedIndices) {
-        index.renderText(_hwnd, _numberSize);
+        index.renderText(_hwnd, _config.numberSize);
     }
     for (DatePointer& date : _renderedDates) {
         auto it = std::lower_bound(date.ptr->begin(), date.ptr->end(), date.date);
         if (it != date.ptr->end() && it->date == date.date) {
-            it->renderText(_hwnd, date.x, date.y, date.w, date.h, _numberSize);
+            it->renderText(_hwnd, date.x, date.y, date.w, date.h, _config.numberSize);
         }
     }
 }
