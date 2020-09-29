@@ -1,6 +1,6 @@
 CXX       := g++
 CXX_FLAGS := -Wall -std=c++11 -MMD -MP -DUNICODE -D_UNICODE -O2 -DNDEBUG
-LD_FLAGS := -ldwmapi -lmsimg32 -lgdi32 -s --static
+LD_FLAGS := -ldwmapi -lmsimg32 -lgdi32 -lpng -lz -s --static
 
 BIN := bin/Release
 OBJ	:= obj/Release

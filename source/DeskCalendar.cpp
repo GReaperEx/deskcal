@@ -281,6 +281,12 @@ void DeskCalendar::update()
     int titleW = screenW - _config.headerIndexSize - _config.marginWide;
     int titleH = _config.titleSize;
 
+    closeButton.update(titleX + titleW - titleH - 5, titleY, titleH, titleH);
+    nextButton.update(titleX + titleW - titleH*4, titleY, titleH, titleH);
+    todayButton.update(titleX + titleW - titleH*6, titleY, titleH, titleH);
+    prevButton.update(titleX + titleW - titleH*8, titleY, titleH, titleH);
+    settingsButton.update(titleX, titleY, titleH, titleH);
+
     _renderedTitle = CalTitle(toDate, titleX, titleY, titleW - _config.marginNarrow, titleH);
 
     _renderedHeaders.clear();
@@ -326,7 +332,7 @@ void DeskCalendar::update()
     _renderedDates.clear();
 
     tm firstDay = {
-        0, 0, 0, _curDate.day, _curDate.month - 1, today.year - 1900, 0, 0, 0
+        0, 0, 0, _curDate.day, _curDate.month - 1, _curDate.year - 1900, 0, 0, 0
     };
     time_t firstTime = mktime(&firstDay);
     firstDay = *localtime(&firstTime);
@@ -391,7 +397,13 @@ void DeskCalendar::render()
     int screenY = workArea.top;
     int screenW = workArea.right - workArea.left;
     int screenH = workArea.bottom - workArea.top;
-    SetWindowPos(_hwnd, HWND_BOTTOM, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+
+    RECT wndRect;
+    GetClientRect(_hwnd, &wndRect);
+
+    if (wndRect.left != workArea.left || wndRect.right != workArea.right || wndRect.top != workArea.top || wndRect.bottom != workArea.bottom) {
+       SetWindowPos(_hwnd, HWND_NOTOPMOST, screenX, screenY, screenW, screenH, SWP_SHOWWINDOW);
+    }
 
     time_t now = time(0);
     tm tmNow = *localtime(&now);
@@ -400,9 +412,16 @@ void DeskCalendar::render()
     WBitmap canvas(screenW, screenH, Color());
 
     _renderedTitle.renderGraphics(canvas, _config.defaultColor);
+    closeButton.renderOnBmp(canvas);
+    nextButton.renderOnBmp(canvas);
+    prevButton.renderOnBmp(canvas);
+    todayButton.renderOnBmp(canvas);
+    settingsButton.renderOnBmp(canvas);
+
     for (CalHeader& header : _renderedHeaders) {
         header.renderGraphics(canvas);
     }
+
     for (CalIndex& index : _renderedIndices) {
         index.renderGraphics(canvas, _config.defaultColor);
     }
@@ -434,4 +453,43 @@ void DeskCalendar::render()
             it->renderText(_hwnd, date.x, date.y, date.w, date.h, _config.numberSize);
         }
     }
+}
+
+void DeskCalendar::onClickNext()
+{
+    tm curTM = {
+        0, 0, 0, _curDate.day, _curDate.month - 1, _curDate.year - 1900, 0, 0, 0
+    };
+    time_t curTime = mktime(&curTM);
+
+    curTime += 7*24*3600;
+    curTM = *localtime(&curTime);
+
+    setCurrentDate(CalDate::Date(curTM.tm_year + 1900, curTM.tm_mon + 1, curTM.tm_mday));
+}
+
+void DeskCalendar::onClickToday()
+{
+    time_t now = time(0);
+    tm today = *localtime(&now);
+
+    setCurrentDate(CalDate::Date(today.tm_year + 1900, today.tm_mon + 1, today.tm_mday));
+}
+
+void DeskCalendar::onClickPrev()
+{
+    tm curTM = {
+        0, 0, 0, _curDate.day, _curDate.month - 1, _curDate.year - 1900, 0, 0, 0
+    };
+    time_t curTime = mktime(&curTM);
+
+    curTime -= 7*24*3600;
+    curTM = *localtime(&curTime);
+
+    setCurrentDate(CalDate::Date(curTM.tm_year + 1900, curTM.tm_mon + 1, curTM.tm_mday));
+}
+
+void DeskCalendar::onClickSettings()
+{
+
 }

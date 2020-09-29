@@ -6,6 +6,7 @@
 #include "CalHeader.h"
 #include "CalIndex.h"
 #include "CalTitle.h"
+#include "CalButton.h"
 
 #include <fstream>
 #include <sstream>
@@ -25,6 +26,12 @@ public:
 
         loadConfig();
         loadDates();
+
+        closeButton.load(L"closeButton.png");
+        nextButton.load(L"nextButton.png");
+        prevButton.load(L"prevButton.png");
+        todayButton.load(L"todayButton.png");
+        settingsButton.load(L"settingsButton.png");
     }
 
     bool loadConfig();
@@ -36,6 +43,32 @@ public:
     void update();
     void render();
 
+    void handleInput(HWND hwnd, UINT msg, WPARAM wParal, LPARAM lParam) {
+        switch (msg)
+        {
+        case WM_LBUTTONDOWN:
+            closeButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
+            nextButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
+            todayButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
+            prevButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
+            settingsButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
+        break;
+        case WM_LBUTTONUP:
+            if (closeButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
+                DestroyWindow(hwnd);
+            } else if (nextButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
+                onClickNext();
+            } else if (todayButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
+                onClickToday();
+            } else if (prevButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
+                onClickPrev();
+            } else if (settingsButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
+                onClickSettings();
+            }
+        break;
+        }
+    }
+
     void setCurrentDate(const CalDate::Date& newDate) {
         _curDate = newDate;
 
@@ -44,6 +77,11 @@ public:
     }
 
 private:
+    void onClickNext();
+    void onClickToday();
+    void onClickPrev();
+    void onClickSettings();
+
     struct DatePointer {
         int x;
         int y;
@@ -67,6 +105,12 @@ private:
     CalTitle _renderedTitle;
     std::vector<CalHeader> _renderedHeaders;
     std::vector<CalIndex> _renderedIndices;
+
+    CalButton closeButton;
+    CalButton nextButton;
+    CalButton prevButton;
+    CalButton todayButton;
+    CalButton settingsButton;
 
     void resetConfig();
 

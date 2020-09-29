@@ -6,13 +6,15 @@
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 HRESULT ExtendIntoClientAll(HWND);
 
+DeskCalendar* calendarPtr;
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     static wchar_t szWindowClass[] = L"Desktop Calendar";
 
     WNDCLASSEX wcex;
     wcex.cbSize         = sizeof(WNDCLASSEX);
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
+    wcex.style          = 0;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
@@ -49,10 +51,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     ExtendIntoClientAll(hWnd);
 
     DeskCalendar myCalendar(hWnd);
+    calendarPtr = &myCalendar;
+
     myCalendar.update();
     myCalendar.render();
-
-    myCalendar.saveDates();
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
@@ -65,7 +67,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    return DefWindowProc(hWnd, message, wParam, lParam);
+    switch (message)
+    {
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+        calendarPtr->handleInput(hWnd, message, wParam, lParam);
+    break;
+    case WM_ERASEBKGND:
+    break;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+    break;
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
+
+    }
+    return 0;
 }
 
 HRESULT ExtendIntoClientAll(HWND hwnd)

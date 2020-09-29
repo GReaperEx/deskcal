@@ -5,8 +5,10 @@
 #include <string>
 
 #include <iostream>
-
+#include <vector>
 #include <cassert>
+
+#include <png++/png.hpp>
 
 class WBitmap
 {
@@ -28,6 +30,13 @@ public:
     };
 
 public:
+    WBitmap() {}
+
+    WBitmap(int width, int height, const std::vector<BGRA>& pixelData)
+    : _hbmp(0) {
+        set(width, height, pixelData);
+    }
+
     WBitmap(int width, int height, BGRA color = BGRA(0, 0, 0, 255))
     : _hbmp(0) {
         resize(width, height, color);
@@ -46,9 +55,10 @@ public:
 
     void reload(const std::wstring& filePath);
     void resize(int width, int height, BGRA color);
+    void set(int width, int height, const std::vector<BGRA>& pixelData);
 
-    void renderOnBmp(WBitmap& other, int x, int y, bool blend = true);
-    void renderOnWnd(HWND hwnd, int x = 0, int y = 0);
+    void renderOnBmp(WBitmap& other, int x, int y, bool blend = true, int w = 0, int h = 0) const;
+    void renderOnWnd(HWND hwnd, int x = 0, int y = 0) const;
 
 private:
     HBITMAP _hbmp;

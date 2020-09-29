@@ -1,6 +1,6 @@
 CXX       := g++
-CXX_FLAGS := -Wall -std=c++11 -MMD -MP -DUNICODE -D_UNICODE -ggdb -Og -D_DEBUG
-LD_FLAGS := -ldwmapi -lmsimg32 -lgdi32
+CXX_FLAGS := -Wall -std=c++11 -MMD -MP -DUNICODE -D_UNICODE -ggdb -D_DEBUG
+LD_FLAGS := -ldwmapi -lmsimg32 -lgdi32 -lpng
 
 BIN := bin/Debug
 OBJ	:= obj/Debug
