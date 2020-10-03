@@ -6,6 +6,7 @@
 #include "WBitmap.h"
 #include "FontInfo.h"
 #include "Color.h"
+#include "TextUtils.h"
 
 class CalDate
 {
@@ -38,6 +39,7 @@ public:
     {}
 
     void renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const;
+    void renderGraphics(HWND hwnd, int x, int y, int w, int h) const;
     void renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const;
 
     bool operator< (const Date& otherDate) const {
@@ -51,8 +53,29 @@ public:
         _color = color;
     }
 
+    Color getColor() const {
+        return _color;
+    }
+
     void setFont(const FontInfo& font) {
         _font = font;
+    }
+
+    const FontInfo& getFont() const {
+        return _font;
+    }
+
+    HFONT createFont() const {
+        return CreateFont(_font.size, 0, 0, 0, _font.weight, _font.italic, _font.underlined, _font.strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
+                          CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(_font.typeface).c_str());
+    }
+
+    const std::wstring& getText() const {
+        return _text;
+    }
+
+    void setText(const std::wstring& newText) {
+        _text = newText;
     }
 
     friend std::ostream& operator<< (std::ostream& outStream, const CalDate& toWrite);

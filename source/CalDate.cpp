@@ -8,6 +8,12 @@ void CalDate::renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const
     calSquare.renderOnBmp(canvas, x, y);
 }
 
+void CalDate::renderGraphics(HWND hwnd, int x, int y, int w, int h) const
+{
+    WBitmap calSquare(w, h, _color);
+    calSquare.renderOnWnd(hwnd, x, y);
+}
+
 void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const
 {
     HFONT myFont = CreateFont(numSize, 0, 0, 0, FW_BOLD, FALSE, FALSE,FALSE, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
@@ -19,7 +25,7 @@ void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) con
     SetBkMode(hdc, TRANSPARENT);
 
     RECT textBox = { x + 5, y + 2, x + w, y + h };
-    DrawText(hdc, std::to_wstring(date.day).c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK);
+    DrawText(hdc, std::to_wstring(date.day).c_str(), -1, &textBox, DT_LEFT | DT_TOP);
     DeleteObject(myFont);
 
     myFont = CreateFont(_font.size, 0, 0, 0, _font.weight, _font.italic, _font.underlined, _font.strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
@@ -27,7 +33,7 @@ void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) con
     SelectObject(hdc, myFont);
     textBox.top += numSize;
     textBox.left -= 5;
-    DrawText(hdc, _text.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK);
+    DrawText(hdc, _text.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_END_ELLIPSIS | DT_NOPREFIX);
     DeleteObject(myFont);
 
     ReleaseDC(hwnd, hdc);

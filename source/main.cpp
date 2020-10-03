@@ -71,16 +71,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
+    case WM_LBUTTONDBLCLK:
+    case WM_CHAR:
         calendarPtr->handleInput(hWnd, message, wParam, lParam);
     break;
     case WM_ERASEBKGND:
     break;
     case WM_DESTROY:
+        calendarPtr->update();
+        calendarPtr->saveDates();
         PostQuitMessage(0);
     break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
-
     }
     return 0;
 }

@@ -6,6 +6,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <windowsx.h>
+
 bool DeskCalendar::loadConfig()
 {
     resetConfig();
@@ -276,6 +278,35 @@ void DeskCalendar::update()
     std::wstring toDate = std::wstring(L"Σήμερα είναι ") + std::to_wstring(timeInfo.tm_mday) + L" " + months[1][timeInfo.tm_mon] + L" "
                         + std::to_wstring(timeInfo.tm_year + 1900) + L", " + days[wDay];
 
+    bool edited = false;
+    for (CalDate& date : _dummyDates) {
+        if (date.getText() != L"" || date.getFont() != _config.defaultFont) {
+            auto it = std::lower_bound(_editedDates.begin(), _editedDates.end(), date);
+            _editedDates.insert(it, date);
+            edited = true;
+        } else {
+            tm dateInfo = {
+                0, 0, 0, date.date.day, date.date.month - 1, date.date.year - 1900, 0, 0, 0
+            };
+            time_t dateTime = mktime(&dateInfo);
+            dateInfo = *localtime(&dateTime);
+
+            wDay = dateInfo.tm_wday - 1;
+            if (wDay < 0) {
+                wDay += 7;
+            }
+
+            if ((wDay < 5 && date.getColor() != _config.defaultColor) || (wDay >= 5 && date.getColor() != _config.weekendColor)) {
+                auto it = std::lower_bound(_editedDates.begin(), _editedDates.end(), date);
+                _editedDates.insert(it, date);
+                edited = true;
+            }
+        }
+    }
+    if (edited) {
+        saveDates();
+    }
+
     int titleX = _config.headerIndexSize + _config.marginWide;
     int titleY = 0;
     int titleW = screenW - _config.headerIndexSize - _config.marginWide;
@@ -487,6 +518,52 @@ void DeskCalendar::onClickPrev()
     curTM = *localtime(&curTime);
 
     setCurrentDate(CalDate::Date(curTM.tm_year + 1900, curTM.tm_mon + 1, curTM.tm_mday));
+}
+
+void DeskCalendar::onClick(int x, int y)
+{
+    static HFONT editFont = NULL;
+
+    if (_selected) {
+        int textLen = Edit_GetTextLength(_editWnd);
+        std::wstring editText(textLen, 0);
+
+        Edit_GetText(_editWnd, &editText[0], textLen + 1);
+
+        DestroyWindow(_editWnd);
+        DeleteObject(editFont);
+
+        auto it = std::lower_bound(_selected->ptr->begin(), _selected->ptr->end(), _selected->date);
+        if (it != _selected->ptr->end() && it->date == _selected->date) {
+            it->renderGraphics(_hwnd, _selected->x, _selected->y, _selected->w, _selected->h);
+            it->setText(editText);
+            it->renderText(_hwnd, _selected->x, _selected->y, _selected->w, _selected->h, _config.numberSize);
+        }
+
+        _selected = nullptr;
+    }
+
+    for (DatePointer& ptr : _renderedDates) {
+        if (ptr.x <= x && ptr.y <= y && x < ptr.x + ptr.w && y < ptr.y + ptr.h) {
+            _selected = &ptr;
+            break;
+        }
+    }
+
+    if (_selected) {
+        auto it = std::lower_bound(_selected->ptr->begin(), _selected->ptr->end(), _selected->date);
+        if (it != _selected->ptr->end() && it->date == _selected->date) {
+            _editWnd = CreateWindowEx(0, L"EDIT", L"", WS_VISIBLE | ES_LEFT | ES_AUTOVSCROLL | ES_MULTILINE | WS_POPUP,
+                                    _selected->x + _config.marginLeft, _selected->y + _config.numberSize + _config.marginTop, _selected->w, _selected->h - _config.numberSize,
+                                    _hwnd, 0, GetModuleHandle(0), NULL);
+            SetFocus(_editWnd);
+
+            editFont = it->createFont();
+            SendMessage(_editWnd, WM_SETFONT, WPARAM(editFont), TRUE);
+
+            Edit_SetText(_editWnd, it->getText().c_str());
+        }
+    }
 }
 
 void DeskCalendar::onClickSettings()

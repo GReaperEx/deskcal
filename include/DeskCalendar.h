@@ -18,6 +18,8 @@ class DeskCalendar
 {
 public:
     DeskCalendar(HWND hwnd) {
+        _selected = nullptr;
+        _editWnd = NULL;
         _hwnd = hwnd;
 
         time_t nowTime = time(0);
@@ -52,6 +54,8 @@ public:
             todayButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
             prevButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
             settingsButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
+
+            onClick(LOWORD(lParam), HIWORD(lParam));
         break;
         case WM_LBUTTONUP:
             if (closeButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
@@ -65,6 +69,9 @@ public:
             } else if (settingsButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
                 onClickSettings();
             }
+        break;
+        case WM_LBUTTONDBLCLK:
+            onClick(LOWORD(lParam), HIWORD(lParam));
         break;
         }
     }
@@ -81,6 +88,8 @@ private:
     void onClickToday();
     void onClickPrev();
     void onClickSettings();
+    void onClick(int x, int y);
+    void onChar(wchar_t wc);
 
     struct DatePointer {
         int x;
@@ -94,6 +103,9 @@ private:
         : x(_x), y(_y), w(_w), h(_h), date(_date), ptr(_ptr)
         {}
     };
+
+    DatePointer* _selected;
+    HWND _editWnd;
 
     HWND _hwnd;
     CalDate::Date _curDate;

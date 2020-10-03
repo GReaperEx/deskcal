@@ -23,6 +23,10 @@ struct Color
         return WBitmap::BGRA(r, g, b, a);
     }
 
+    bool operator!= (const Color& other) const {
+        return r != other.r || g != other.g || b != other.b || a != other.a;
+    }
+
     friend std::ostream& operator<< (std::ostream& outStream, const Color& toWrite);
     friend std::istream& operator>> (std::istream& inStream, Color& toRead);
 };
