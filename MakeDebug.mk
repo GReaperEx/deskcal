@@ -1,6 +1,6 @@
 CXX       := g++
 CXX_FLAGS := -Wall -std=c++11 -MMD -MP -DUNICODE -D_UNICODE -ggdb -D_DEBUG
-LD_FLAGS := -ldwmapi -lmsimg32 -lgdi32 -lpng
+LD_FLAGS := -lgdi32 -ldwmapi -lmsimg32 -lpng -lcomctl32
 
 BIN := bin/Debug
 OBJ	:= obj/Debug
@@ -17,11 +17,14 @@ DEPENDS := $(OBJECTS:.o=.d)
 
 all: $(BIN)/$(EXECUTABLE)
 
-$(BIN)/$(EXECUTABLE): $(OBJECTS) | $(BIN)
+$(BIN)/$(EXECUTABLE): $(OBJECTS) $(OBJ)/deskcal.res | $(BIN)
 	$(CXX) $(filter-out $(BIN), $^) -o $@ $(LD_FLAGS)
 
 $(OBJ)/%.o : $(SRC)/%.cpp | $(OBJ)
 	$(CXX) $(CXX_FLAGS) -I$(INC) -c -o $@ $<
+
+$(OBJ)/%.res : %.rc | $(OBJ)
+	windres.exe -i $< -J rc -o $@ -O coff
 
 $(BIN):
 	-mkdir -p $(BIN)

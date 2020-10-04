@@ -16,20 +16,24 @@ public:
     }
 
     void update(int newX, int newY, int newW, int newH) {
-        int marginX = (newW - 32)/2;
-        int marginY = (newH - 32)/2;
+        int marginX = (newW - _bitmap.getWidth())/2;
+        int marginY = (newH - _bitmap.getHeight())/2;
 
         _x = newX + marginX;
         _y = newY + marginY;
-        _w = 32;
-        _h = 32;
+        _w = _bitmap.getWidth();
+        _h = _bitmap.getHeight();
+
+        _pressed = false;
     }
 
-    void onLMBdown(int x, int y) {
+    bool onLMBdown(int x, int y) {
         if (_x <= x && x < _x + _w &&
             _y <= y && y < _y + _h) {
             _pressed = true;
+            return true;
         }
+        return false;
     }
 
     bool onLMBup(int x, int y) {
@@ -47,8 +51,21 @@ public:
         _bitmap.renderOnBmp(canvas, _x, _y, true, _w, _h);
     }
 
+    void renderOnWnd(HWND hwnd, Color color) {
+        WBitmap layer(_w, _h, color);
+        _prevColor = color;
+        _bitmap.renderOnBmp(layer, 0, 0);
+        layer.renderOnWnd(hwnd, _x, _y);
+    }
+
+    void maskOnWnd(HWND hwnd) const {
+        WBitmap layer(_w, _h, _prevColor);
+        layer.renderOnWnd(hwnd, _x, _y);
+    }
+
 private:
     bool _pressed;
+    Color _prevColor;
 
     WBitmap _bitmap;
     int _x;

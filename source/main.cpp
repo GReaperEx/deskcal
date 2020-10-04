@@ -12,6 +12,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     static wchar_t szWindowClass[] = L"Desktop Calendar";
 
+    InitCommonControls();
+
     WNDCLASSEX wcex;
     wcex.cbSize         = sizeof(WNDCLASSEX);
     wcex.style          = 0;
@@ -71,15 +73,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
-    case WM_LBUTTONDBLCLK:
-    case WM_CHAR:
+    case WM_MOUSEMOVE:
         calendarPtr->handleInput(hWnd, message, wParam, lParam);
     break;
     case WM_ERASEBKGND:
     break;
     case WM_DESTROY:
         calendarPtr->update();
-        calendarPtr->saveDates();
         PostQuitMessage(0);
     break;
     default:

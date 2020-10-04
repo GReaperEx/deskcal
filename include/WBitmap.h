@@ -60,6 +60,13 @@ public:
     void renderOnBmp(WBitmap& other, int x, int y, bool blend = true, int w = 0, int h = 0) const;
     void renderOnWnd(HWND hwnd, int x = 0, int y = 0) const;
 
+    int getWidth() const {
+        return _width;
+    }
+    int getHeight() const {
+        return _height;
+    }
+
 private:
     HBITMAP _hbmp;
     int _width;

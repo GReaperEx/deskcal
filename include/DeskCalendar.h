@@ -14,13 +14,17 @@
 #include <vector>
 #include <ctime>
 
+#include <windowsx.h>
+
 class DeskCalendar
 {
 public:
     DeskCalendar(HWND hwnd) {
         _selected = nullptr;
         _editWnd = NULL;
+        _editFont = NULL;
         _hwnd = hwnd;
+        _edited = false;
 
         time_t nowTime = time(0);
         tm now = *localtime(&nowTime);
@@ -34,6 +38,9 @@ public:
         prevButton.load(L"prevButton.png");
         todayButton.load(L"todayButton.png");
         settingsButton.load(L"settingsButton.png");
+        cellButton.load(L"cellButton.png");
+
+        cellButtonVisible = false;
     }
 
     bool loadConfig();
@@ -45,7 +52,7 @@ public:
     void update();
     void render();
 
-    void handleInput(HWND hwnd, UINT msg, WPARAM wParal, LPARAM lParam) {
+    void handleInput(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         switch (msg)
         {
         case WM_LBUTTONDOWN:
@@ -54,8 +61,9 @@ public:
             todayButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
             prevButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
             settingsButton.onLMBdown(LOWORD(lParam), HIWORD(lParam));
-
-            onClick(LOWORD(lParam), HIWORD(lParam));
+            if (!cellButtonVisible || (cellButtonVisible && !cellButton.onLMBdown(LOWORD(lParam), HIWORD(lParam)))) {
+                onClick(LOWORD(lParam), HIWORD(lParam));
+            }
         break;
         case WM_LBUTTONUP:
             if (closeButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
@@ -68,10 +76,12 @@ public:
                 onClickPrev();
             } else if (settingsButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
                 onClickSettings();
+            } else if (cellButtonVisible && cellButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
+                onClickCell();
             }
         break;
-        case WM_LBUTTONDBLCLK:
-            onClick(LOWORD(lParam), HIWORD(lParam));
+        case WM_MOUSEMOVE:
+            onHover(LOWORD(lParam), HIWORD(lParam));
         break;
         }
     }
@@ -88,8 +98,9 @@ private:
     void onClickToday();
     void onClickPrev();
     void onClickSettings();
+    void onClickCell();
     void onClick(int x, int y);
-    void onChar(wchar_t wc);
+    void onHover(int x, int y);
 
     struct DatePointer {
         int x;
@@ -106,6 +117,8 @@ private:
 
     DatePointer* _selected;
     HWND _editWnd;
+    HFONT _editFont;
+    bool _edited;
 
     HWND _hwnd;
     CalDate::Date _curDate;
@@ -123,6 +136,8 @@ private:
     CalButton prevButton;
     CalButton todayButton;
     CalButton settingsButton;
+    CalButton cellButton;
+    bool cellButtonVisible;
 
     void resetConfig();
 
