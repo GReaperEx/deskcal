@@ -21,6 +21,11 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Break on exception throw",
+                    "text": "catch throw",
+                    "ignoreFailures": true
                 }
             ],
             "preLaunchTask": "Debug build"
@@ -41,6 +46,11 @@
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Break on exception throw",
+                    "text": "catch throw",
                     "ignoreFailures": true
                 }
             ],

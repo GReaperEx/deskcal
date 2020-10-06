@@ -2,6 +2,8 @@
 
 #include "TextUtils.h"
 
+#include <sstream>
+
 void CalDate::renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const
 {
     WBitmap calSquare(w, h, _color);
@@ -33,9 +35,38 @@ void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) con
     SelectObject(hdc, myFont);
     textBox.top += numSize;
     textBox.left -= 5;
-    DrawText(hdc, _text.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_END_ELLIPSIS | DT_NOPREFIX);
-    DeleteObject(myFont);
 
+    if (_listed) {
+        int totalHeight = 0;
+        int index = 1;
+        std::wstringstream stream(_text);
+        std::wstring line;
+        while (std::getline(stream, line)) {
+            DrawText(hdc, (std::to_wstring(index) + L")").c_str(), -1, &textBox, DT_LEFT | DT_TOP);
+            textBox.left += numSize;
+            if (textBox.left > textBox.right) {
+                textBox.left = textBox.right;
+            }
+            int textHeight = DrawText(hdc, line.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX) - _font.size;
+            totalHeight += textHeight;
+
+            if (totalHeight > h - numSize) {
+                DrawText(hdc, L"--------------------------------", -1, &textBox, DT_RIGHT);
+                break;
+            }
+            textBox.top += textHeight;
+            ++index;
+            textBox.left -= numSize;
+        }
+    } else {
+        int textHeight = DrawText(hdc, _text.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_WORD_ELLIPSIS | DT_NOPREFIX);
+        if (textHeight > h - numSize) {
+            textBox = { x, y + h - numSize, x + w, y + h };
+            DrawText(hdc, L"--------------------------------", -1, &textBox, DT_RIGHT);
+        }
+    }
+
+    DeleteObject(myFont);
     ReleaseDC(hwnd, hdc);
 }
 

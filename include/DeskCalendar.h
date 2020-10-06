@@ -19,6 +19,70 @@
 class DeskCalendar
 {
 public:
+    struct DatePointer {
+        int x;
+        int y;
+        int w;
+        int h;
+        CalDate::Date date;
+        std::vector<CalDate>* ptr;
+
+        DatePointer() { ptr = nullptr; }
+        DatePointer(int _x, int _y, int _w, int _h, CalDate::Date _date, std::vector<CalDate>* _ptr)
+        : x(_x), y(_y), w(_w), h(_h), date(_date), ptr(_ptr)
+        {}
+
+        void renderGraphics(WBitmap& canvas) const {
+            if (ptr) {
+                auto it = std::lower_bound(ptr->begin(), ptr->end(), date);
+                if (it != ptr->end() && it->date == date) {
+                    it->renderGraphics(canvas, x, y, w, h);
+                }
+            }
+        }
+        void renderGraphics(HWND hwnd) const {
+            if (ptr) {
+                auto it = std::lower_bound(ptr->begin(), ptr->end(), date);
+                if (it != ptr->end() && it->date == date) {
+                    it->renderGraphics(hwnd, x, y, w, h);
+                }
+            }
+        }
+        void renderText(HWND hwnd, int numSize) const {
+            if (ptr) {
+                auto it = std::lower_bound(ptr->begin(), ptr->end(), date);
+                if (it != ptr->end() && it->date == date) {
+                    it->renderText(hwnd, x, y, w, h, numSize);
+                }
+            }
+        }
+    };
+
+    struct ConfigVars {
+        int headerIndexSize;
+        int titleSize;
+
+        int marginNarrow;
+        int marginWide;
+
+        int marginLeft;
+        int marginTop;
+        int marginRight;
+        int marginBottom;
+
+        Color defaultColor;
+        Color weekendColor;
+        Color monthColor;
+        Color curDayColor;
+
+        int numberSize;
+        FontInfo defaultFont;
+
+        float columnSizes[7];
+        int rowAmount;
+    };
+
+public:
     DeskCalendar(HWND hwnd) {
         _selected = nullptr;
         _editWnd = NULL;
@@ -33,12 +97,12 @@ public:
         loadConfig();
         loadDates();
 
-        closeButton.load(L"closeButton.png");
-        nextButton.load(L"nextButton.png");
-        prevButton.load(L"prevButton.png");
-        todayButton.load(L"todayButton.png");
-        settingsButton.load(L"settingsButton.png");
-        cellButton.load(L"cellButton.png");
+        closeButton.load(L"resources/closeButton.png");
+        nextButton.load(L"resources/nextButton.png");
+        prevButton.load(L"resources/prevButton.png");
+        todayButton.load(L"resources/todayButton.png");
+        settingsButton.load(L"resources/settingsButton.png");
+        cellButton.load(L"resources/cellButton.png");
 
         cellButtonVisible = false;
     }
@@ -77,7 +141,7 @@ public:
             } else if (settingsButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
                 onClickSettings();
             } else if (cellButtonVisible && cellButton.onLMBup(LOWORD(lParam), HIWORD(lParam))) {
-                onClickCell();
+                onClickCell(LOWORD(lParam), HIWORD(lParam));
             }
         break;
         case WM_MOUSEMOVE:
@@ -93,27 +157,22 @@ public:
         render();
     }
 
+    const ConfigVars& getConfig() const {
+        return _config;
+    }
+
+    void setConfig(const ConfigVars& newConfig) {
+        _config = newConfig;
+    }
+
 private:
     void onClickNext();
     void onClickToday();
     void onClickPrev();
     void onClickSettings();
-    void onClickCell();
+    void onClickCell(int x, int y);
     void onClick(int x, int y);
     void onHover(int x, int y);
-
-    struct DatePointer {
-        int x;
-        int y;
-        int w;
-        int h;
-        CalDate::Date date;
-        std::vector<CalDate>* ptr;
-
-        DatePointer(int _x, int _y, int _w, int _h, CalDate::Date _date, std::vector<CalDate>* _ptr)
-        : x(_x), y(_y), w(_w), h(_h), date(_date), ptr(_ptr)
-        {}
-    };
 
     DatePointer* _selected;
     HWND _editWnd;
@@ -141,29 +200,7 @@ private:
 
     void resetConfig();
 
-    struct ConfigVars {
-        int headerIndexSize;
-        int titleSize;
-
-        int marginNarrow;
-        int marginWide;
-
-        int marginLeft;
-        int marginTop;
-        int marginRight;
-        int marginBottom;
-
-        Color defaultColor;
-        Color weekendColor;
-        Color monthColor;
-        Color curDayColor;
-
-        int numberSize;
-        FontInfo defaultFont;
-
-        float columnSizes[7];
-        int rowAmount;
-    }_config;
+    ConfigVars _config;
 };
 
 

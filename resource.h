@@ -1,28 +1,54 @@
-#ifndef RESOURCE_H
-#define RESOURCE_H
-
 #ifndef IDC_STATIC
 #define IDC_STATIC (-1)
 #endif
 
 #define IDD_DATE_SETTINGS                       101
+#define IDD_SETTINGS                            103
+#define IDI_ICON1                               104
 #define IDG_FONT                                40000
+#define ID_FONT_SIZE                            40001
 #define IDG_COLOR                               40002
 #define ID_FONT_NAME                            40003
 #define ID_FONT_WEIGHT                          40004
-#define ID_WEIGHT_SLIDER                        40005
+#define ID_COLOR_RED_DEFAULT                    40005
 #define IDCK_ITALIC                             40006
 #define IDCK_UNDERLINE                          40007
 #define IDCK_STRIKEOUT                          40008
 #define IDCK_LIST                               40009
+#define ID_COLOR_GREEN_DEFAULT                  40009
+#define ID_COLOR_GREEN_DAY                      40010
 #define ID_COLOR_RED                            40010
+#define ID_COLOR_BLUE_DAY                       40011
 #define ID_COLOR_GREEN                          40011
+#define ID_COLOR_ALPHA_DAY                      40012
 #define ID_COLOR_BLUE                           40012
 #define ID_COLOR_ALPHA                          40013
-#define ID_RED_SLIDER                           40014
-#define ID_GREEN_SLIDER                         40015
-#define ID_BLUE_SLIDER                          40016
-#define ID_ALPHA_SLIDER                         40017
-#define IDB_APPLY                               40018
-
-#endif // RESOURCE_H
+#define ID_MARGIN_WIDE                          40013
+#define ID_COLOR_BLUE_DEFAULT                   40014
+#define ID_COLOR_ALPHA_DEFAULT                  40015
+#define ID_COLOR_RED_WEEKEND                    40016
+#define ID_COLOR_GREEN_WEEKEND                  40017
+#define ID_COLOR_BLUE_WEEKEND                   40018
+#define ID_COLOR_ALPHA_WEEKEND                  40019
+#define ID_COLOR_RED_MONTH                      40020
+#define ID_COLOR_GREEN_MONTH                    40021
+#define ID_COLOR_BLUE_MONTH                     40022
+#define ID_COLOR_ALPHA_MONTH                    40023
+#define ID_COLOR_RED_DAY                        40024
+#define ID_MARGIN_NARROW                        40025
+#define ID_MARGIN_LEFT                          40026
+#define ID_MARGIN_TOP                           40027
+#define ID_MARGIN_RIGHT                         40028
+#define ID_MARGIN_BOTTOM                        40029
+#define ID_TITLE_SIZE                           40030
+#define ID_HEADER_SIZE                          40031
+#define ID_WEEKS                                40032
+#define ID_PERCENT_MON                          40033
+#define ID_PERCENT_TUE                          40034
+#define ID_PERCENT_WED                          40035
+#define ID_PERCENT_THU                          40036
+#define ID_PERCENT_FRI                          40037
+#define ID_PERCENT_SAT                          40038
+#define ID_PERCENT_SUN                          40039
+#define ID_NUMSIZE                              40040
+#define IDB_APPLY                               40041

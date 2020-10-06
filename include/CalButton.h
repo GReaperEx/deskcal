@@ -63,6 +63,10 @@ public:
         layer.renderOnWnd(hwnd, _x, _y);
     }
 
+    void setPrevColor(Color newColor) {
+        _prevColor = newColor;
+    }
+
 private:
     bool _pressed;
     Color _prevColor;

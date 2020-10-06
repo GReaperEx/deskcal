@@ -33,9 +33,11 @@ public:
     } date;
 
 public:
-    CalDate() {}
-    CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font)
-    : date(_date), _text(text), _color(color), _font(font)
+    CalDate() {
+        _listed = false;
+    }
+    CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font, bool listed = false)
+    : date(_date), _text(text), _color(color), _font(font), _listed(listed)
     {}
 
     void renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const;
@@ -78,6 +80,14 @@ public:
         _text = newText;
     }
 
+    bool getListed() const {
+        return _listed;
+    }
+
+    void setListed(bool newVal) {
+        _listed = newVal;
+    }
+
     friend std::ostream& operator<< (std::ostream& outStream, const CalDate& toWrite);
     friend std::istream& operator>> (std::istream& inStream, CalDate& toRead);
 
@@ -85,6 +95,7 @@ private:
     std::wstring _text;
     Color _color;
     FontInfo _font;
+    bool _listed;
 
 };
 
