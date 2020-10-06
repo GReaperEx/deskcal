@@ -937,81 +937,86 @@ bool retrieveDateSettings(HWND hwnd)
     Color newColor;
     bool newList;
 
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_NAME)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_NAME), &str[0], str.size() + 1);
-    if (std::find(g_typefaces.begin(), g_typefaces.end(), str) == g_typefaces.end()) {
-        MessageBox(hwnd, L"Η επιλεγμένη γραμματοσειρά δεν υποστηρίζεται", L"Σφάλμα", MB_ICONERROR | MB_OK);
+    try {
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_NAME)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_NAME), &str[0], str.size() + 1);
+        if (std::find(g_typefaces.begin(), g_typefaces.end(), str) == g_typefaces.end()) {
+            MessageBox(hwnd, L"Η επιλεγμένη γραμματοσειρά δεν υποστηρίζεται", L"Σφάλμα", MB_ICONERROR | MB_OK);
+            return false;
+        }
+        newFont.typeface = utf16_to_utf8(str);
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_SIZE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_SIZE), &str[0], str.size() + 1);
+        newFont.size = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_WEIGHT)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_WEIGHT), &str[0], str.size() + 1);
+        newFont.weight = std::stoi(str);
+        if (newFont.weight <= 0 || newFont.weight > 1000) {
+            MessageBox(hwnd, L"Η ένταση πρέπει να είναι από 1 μέχρι και 1000", L"Σφάλμα", MB_ICONERROR | MB_OK);
+            return false;
+        }
+
+        newFont.italic = IsDlgButtonChecked(hwnd, IDCK_ITALIC);
+        newFont.underlined = IsDlgButtonChecked(hwnd, IDCK_UNDERLINE);
+        newFont.strikeout = IsDlgButtonChecked(hwnd, IDCK_STRIKEOUT);
+        newList = IsDlgButtonChecked(hwnd, IDCK_LIST);
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_RED)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_RED), &str[0], str.size() + 1);
+        int r = std::stoi(str);
+        if (r < 0 || r > 255) {
+            MessageBox(hwnd, L"Το κόκκινο πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
+            return false;
+        }
+        newColor.r = r;
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_GREEN)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_GREEN), &str[0], str.size() + 1);
+        int g = std::stoi(str);
+        if (g < 0 || g > 255) {
+            MessageBox(hwnd, L"Το πράσινο πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
+            return false;
+        }
+        newColor.g = g;
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_BLUE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_BLUE), &str[0], str.size() + 1);
+        int b = std::stoi(str);
+        if (b < 0 || b > 255) {
+            MessageBox(hwnd, L"Το μπλε πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
+            return false;
+        }
+        newColor.b = b;
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_ALPHA)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_ALPHA), &str[0], str.size() + 1);
+        int a = std::stoi(str);
+        if (a < 0 || a > 255) {
+            MessageBox(hwnd, L"Η διαφάνεια πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
+            return false;
+        }
+        newColor.a = a;
+
+        if (newFont != g_config.defaultFont) {
+            g_setDate.setFont(newFont);
+        }
+
+        tm curTM = {
+            0, 0, 0, g_setDate.date.day, g_setDate.date.month - 1, g_setDate.date.year - 1900, 0, 0, 0
+        };
+        time_t curTime = mktime(&curTM);
+        curTM = *localtime(&curTime);
+
+        if (((curTM.tm_wday == 0 || curTM.tm_wday == 6) && newColor != g_config.weekendColor) ||
+            ((curTM.tm_wday > 0 && curTM.tm_wday < 6) && newColor != g_config.defaultColor)) {
+            g_setDate.setColor(newColor);
+        }
+        g_setDate.setListed(newList);
+    } catch (...) {
+        MessageBox(hwnd, L"Δεν πρέπει να υπάρχουν κενά πεδία τιμών", L"Σφάλμα", MB_ICONERROR | MB_OK);
         return false;
     }
-    newFont.typeface = utf16_to_utf8(str);
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_SIZE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_SIZE), &str[0], str.size() + 1);
-    newFont.size = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_WEIGHT)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_WEIGHT), &str[0], str.size() + 1);
-    newFont.weight = std::stoi(str);
-    if (newFont.weight <= 0 || newFont.weight > 1000) {
-        MessageBox(hwnd, L"Η ένταση πρέπει να είναι από 1 μέχρι και 1000", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-
-    newFont.italic = IsDlgButtonChecked(hwnd, IDCK_ITALIC);
-    newFont.underlined = IsDlgButtonChecked(hwnd, IDCK_UNDERLINE);
-    newFont.strikeout = IsDlgButtonChecked(hwnd, IDCK_STRIKEOUT);
-    newList = IsDlgButtonChecked(hwnd, IDCK_LIST);
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_RED)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_RED), &str[0], str.size() + 1);
-    int r = std::stoi(str);
-    if (r < 0 || r > 255) {
-        MessageBox(hwnd, L"Το κόκκινο πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-    newColor.r = r;
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_GREEN)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_GREEN), &str[0], str.size() + 1);
-    int g = std::stoi(str);
-    if (g < 0 || g > 255) {
-        MessageBox(hwnd, L"Το πράσινο πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-    newColor.g = g;
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_BLUE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_BLUE), &str[0], str.size() + 1);
-    int b = std::stoi(str);
-    if (b < 0 || b > 255) {
-        MessageBox(hwnd, L"Το μπλε πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-    newColor.b = b;
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_COLOR_ALPHA)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_COLOR_ALPHA), &str[0], str.size() + 1);
-    int a = std::stoi(str);
-    if (a < 0 || a > 255) {
-        MessageBox(hwnd, L"Η διαφάνεια πρέπει να είναι από 0 μέχρι και 255", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-    newColor.a = a;
-
-    if (newFont != g_config.defaultFont) {
-        g_setDate.setFont(newFont);
-    }
-
-    tm curTM = {
-        0, 0, 0, g_setDate.date.day, g_setDate.date.month - 1, g_setDate.date.year - 1900, 0, 0, 0
-    };
-    time_t curTime = mktime(&curTM);
-    curTM = *localtime(&curTime);
-
-    if (((curTM.tm_wday == 0 || curTM.tm_wday == 6) && newColor != g_config.weekendColor) ||
-        ((curTM.tm_wday > 0 && curTM.tm_wday < 6) && newColor != g_config.defaultColor)) {
-        g_setDate.setColor(newColor);
-    }
-    g_setDate.setListed(newList);
 
     return true;
 }
@@ -1054,124 +1059,129 @@ bool retrieveSettings(HWND hwnd)
 {
     std::wstring str;
 
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_NAME)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_NAME), &str[0], str.size() + 1);
-    if (std::find(g_typefaces.begin(), g_typefaces.end(), str) == g_typefaces.end()) {
-        MessageBox(hwnd, L"Η επιλεγμένη γραμματοσειρά δεν υποστηρίζεται", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-    g_config.defaultFont.typeface = utf16_to_utf8(str);
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_SIZE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_SIZE), &str[0], str.size() + 1);
-    g_config.defaultFont.size = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_NUMSIZE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_NUMSIZE), &str[0], str.size() + 1);
-    g_config.numberSize = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_WEIGHT)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_WEIGHT), &str[0], str.size() + 1);
-    g_config.defaultFont.weight = std::stoi(str);
-    if (g_config.defaultFont.weight <= 0 || g_config.defaultFont.weight > 1000) {
-        MessageBox(hwnd, L"Η ένταση πρέπει να είναι από 1 μέχρι και 1000", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-
-    g_config.defaultFont.italic = IsDlgButtonChecked(hwnd, IDCK_ITALIC);
-    g_config.defaultFont.underlined = IsDlgButtonChecked(hwnd, IDCK_UNDERLINE);
-    g_config.defaultFont.strikeout = IsDlgButtonChecked(hwnd, IDCK_STRIKEOUT);
-
-    static const unsigned colorIdents[] = {
-        ID_COLOR_RED_DEFAULT, ID_COLOR_GREEN_DEFAULT, ID_COLOR_BLUE_DEFAULT, ID_COLOR_ALPHA_DEFAULT,
-        ID_COLOR_RED_WEEKEND, ID_COLOR_GREEN_WEEKEND, ID_COLOR_BLUE_WEEKEND, ID_COLOR_ALPHA_WEEKEND,
-        ID_COLOR_RED_MONTH, ID_COLOR_GREEN_MONTH, ID_COLOR_BLUE_MONTH, ID_COLOR_ALPHA_MONTH,
-        ID_COLOR_RED_DAY, ID_COLOR_GREEN_DAY, ID_COLOR_BLUE_DAY, ID_COLOR_ALPHA_DAY
-    };
-    static const wchar_t *colorTexts[] = {
-        L"Το γενικό κόκκινο", L"Το γενικό πράσινο", L"Το γενικό μπλε", L"Η γενική διαφάνεια",
-        L"Το κόκκινο σαββατοκύριακου", L"Το πράσινο σαββατοκύριακου", L"Το μπλε σαββατοκύριακου", L"Η διαφάνεια σαββατοκύριακου",
-        L"Το κόκκινο μηνός", L"Το πράσινο μηνός", L"Το μπλε μηνός", L"Η διαφάνεια μηνός",
-        L"Το κόκκινο ημέρας", L"Το πράσινο ημέρας", L"Το μπλε ημέρας", L"Η διαφάνεια ημέρας"
-    };
-    int *colorPtrs[] = {
-        &g_config.defaultColor.r, &g_config.defaultColor.g, &g_config.defaultColor.b, &g_config.defaultColor.a,
-        &g_config.weekendColor.r, &g_config.weekendColor.g, &g_config.weekendColor.b, &g_config.weekendColor.a,
-        &g_config.monthColor.r, &g_config.monthColor.g, &g_config.monthColor.b, &g_config.monthColor.a,
-        &g_config.curDayColor.r, &g_config.curDayColor.g, &g_config.curDayColor.b, &g_config.curDayColor.a
-    };
-
-    for (int i = 0; i < 16; ++i) {
-        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, colorIdents[i])));
-        ComboBox_GetText(GetDlgItem(hwnd, colorIdents[i]), &str[0], str.size() + 1);
-        int color = std::stoi(str);
-        if (color < 0 || color > 255) {
-            MessageBox(hwnd, (std::wstring(colorTexts[i]) + L" πρέπει να είναι από 0 μέχρι και 255").c_str(), L"Σφάλμα", MB_ICONERROR | MB_OK);
+    try {
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_NAME)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_NAME), &str[0], str.size() + 1);
+        if (std::find(g_typefaces.begin(), g_typefaces.end(), str) == g_typefaces.end()) {
+            MessageBox(hwnd, L"Η επιλεγμένη γραμματοσειρά δεν υποστηρίζεται", L"Σφάλμα", MB_ICONERROR | MB_OK);
             return false;
         }
-        *colorPtrs[i] = color;
-    }
+        g_config.defaultFont.typeface = utf16_to_utf8(str);
 
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_NARROW)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_NARROW), &str[0], str.size() + 1);
-    g_config.marginNarrow = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_WIDE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_WIDE), &str[0], str.size() + 1);
-    g_config.marginWide = std::stoi(str);
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_LEFT)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_LEFT), &str[0], str.size() + 1);
-    g_config.marginLeft = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_TOP)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_TOP), &str[0], str.size() + 1);
-    g_config.marginTop = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_RIGHT)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_RIGHT), &str[0], str.size() + 1);
-    g_config.marginRight = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_BOTTOM)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_BOTTOM), &str[0], str.size() + 1);
-    g_config.marginBottom = std::stoi(str);
-
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_TITLE_SIZE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_TITLE_SIZE), &str[0], str.size() + 1);
-    g_config.titleSize = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_HEADER_SIZE)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_HEADER_SIZE), &str[0], str.size() + 1);
-    g_config.headerIndexSize = std::stoi(str);
-    str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_WEEKS)));
-    ComboBox_GetText(GetDlgItem(hwnd, ID_WEEKS), &str[0], str.size() + 1);
-    g_config.rowAmount = std::stoi(str);
-    if (g_config.rowAmount <= 0) {
-        MessageBox(hwnd, L"Το πλήθος εβδομάδων πρέπει να είναι μεγαλύτερο του μηδενός", L"Σφάλμα", MB_ICONERROR | MB_OK);
-        return false;
-    }
-
-    static const wchar_t *days[] = {
-        L"Δευτέρας", L"Τρίτης", L"Τετάρτης", L"Πέμπτης", L"Παρασκευής", L"Σαββάτου", L"Κυριακής"
-    };
-    static const unsigned idents[] = {
-        ID_PERCENT_MON, ID_PERCENT_TUE, ID_PERCENT_WED, ID_PERCENT_THU, ID_PERCENT_FRI, ID_PERCENT_SAT, ID_PERCENT_SUN
-    };
-    float sizeSum = 0;
-    for (int i = 0; i < 7; ++i) {
-        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, idents[i])));
-        ComboBox_GetText(GetDlgItem(hwnd, idents[i]), &str[0], str.size() + 1);
-        float percent;
-        try {
-            percent = std::stof(str);
-        } catch (...) {
-            MessageBox(hwnd, (std::wstring(L"Το μέγεθος ") + days[i] + L" πρέπει να είναι αριθμός").c_str(), L"Σφάλμα", MB_ICONERROR | MB_OK);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_SIZE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_SIZE), &str[0], str.size() + 1);
+        g_config.defaultFont.size = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_NUMSIZE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_NUMSIZE), &str[0], str.size() + 1);
+        g_config.numberSize = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_FONT_WEIGHT)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_FONT_WEIGHT), &str[0], str.size() + 1);
+        g_config.defaultFont.weight = std::stoi(str);
+        if (g_config.defaultFont.weight <= 0 || g_config.defaultFont.weight > 1000) {
+            MessageBox(hwnd, L"Η ένταση πρέπει να είναι από 1 μέχρι και 1000", L"Σφάλμα", MB_ICONERROR | MB_OK);
             return false;
         }
 
-        if (percent <= 0) {
-            MessageBox(hwnd, (std::wstring(L"Το μέγεθος ") + days[i] + L" πρέπει να είναι μεγαλύτερο του μηδενός").c_str(), L"Σφάλμα", MB_ICONERROR | MB_OK);
+        g_config.defaultFont.italic = IsDlgButtonChecked(hwnd, IDCK_ITALIC);
+        g_config.defaultFont.underlined = IsDlgButtonChecked(hwnd, IDCK_UNDERLINE);
+        g_config.defaultFont.strikeout = IsDlgButtonChecked(hwnd, IDCK_STRIKEOUT);
+
+        static const unsigned colorIdents[] = {
+            ID_COLOR_RED_DEFAULT, ID_COLOR_GREEN_DEFAULT, ID_COLOR_BLUE_DEFAULT, ID_COLOR_ALPHA_DEFAULT,
+            ID_COLOR_RED_WEEKEND, ID_COLOR_GREEN_WEEKEND, ID_COLOR_BLUE_WEEKEND, ID_COLOR_ALPHA_WEEKEND,
+            ID_COLOR_RED_MONTH, ID_COLOR_GREEN_MONTH, ID_COLOR_BLUE_MONTH, ID_COLOR_ALPHA_MONTH,
+            ID_COLOR_RED_DAY, ID_COLOR_GREEN_DAY, ID_COLOR_BLUE_DAY, ID_COLOR_ALPHA_DAY
+        };
+        static const wchar_t *colorTexts[] = {
+            L"Το γενικό κόκκινο", L"Το γενικό πράσινο", L"Το γενικό μπλε", L"Η γενική διαφάνεια",
+            L"Το κόκκινο σαββατοκύριακου", L"Το πράσινο σαββατοκύριακου", L"Το μπλε σαββατοκύριακου", L"Η διαφάνεια σαββατοκύριακου",
+            L"Το κόκκινο μηνός", L"Το πράσινο μηνός", L"Το μπλε μηνός", L"Η διαφάνεια μηνός",
+            L"Το κόκκινο ημέρας", L"Το πράσινο ημέρας", L"Το μπλε ημέρας", L"Η διαφάνεια ημέρας"
+        };
+        int *colorPtrs[] = {
+            &g_config.defaultColor.r, &g_config.defaultColor.g, &g_config.defaultColor.b, &g_config.defaultColor.a,
+            &g_config.weekendColor.r, &g_config.weekendColor.g, &g_config.weekendColor.b, &g_config.weekendColor.a,
+            &g_config.monthColor.r, &g_config.monthColor.g, &g_config.monthColor.b, &g_config.monthColor.a,
+            &g_config.curDayColor.r, &g_config.curDayColor.g, &g_config.curDayColor.b, &g_config.curDayColor.a
+        };
+
+        for (int i = 0; i < 16; ++i) {
+            str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, colorIdents[i])));
+            ComboBox_GetText(GetDlgItem(hwnd, colorIdents[i]), &str[0], str.size() + 1);
+            int color = std::stoi(str);
+            if (color < 0 || color > 255) {
+                MessageBox(hwnd, (std::wstring(colorTexts[i]) + L" πρέπει να είναι από 0 μέχρι και 255").c_str(), L"Σφάλμα", MB_ICONERROR | MB_OK);
+                return false;
+            }
+            *colorPtrs[i] = color;
+        }
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_NARROW)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_NARROW), &str[0], str.size() + 1);
+        g_config.marginNarrow = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_WIDE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_WIDE), &str[0], str.size() + 1);
+        g_config.marginWide = std::stoi(str);
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_LEFT)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_LEFT), &str[0], str.size() + 1);
+        g_config.marginLeft = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_TOP)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_TOP), &str[0], str.size() + 1);
+        g_config.marginTop = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_RIGHT)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_RIGHT), &str[0], str.size() + 1);
+        g_config.marginRight = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_MARGIN_BOTTOM)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_MARGIN_BOTTOM), &str[0], str.size() + 1);
+        g_config.marginBottom = std::stoi(str);
+
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_TITLE_SIZE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_TITLE_SIZE), &str[0], str.size() + 1);
+        g_config.titleSize = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_HEADER_SIZE)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_HEADER_SIZE), &str[0], str.size() + 1);
+        g_config.headerIndexSize = std::stoi(str);
+        str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, ID_WEEKS)));
+        ComboBox_GetText(GetDlgItem(hwnd, ID_WEEKS), &str[0], str.size() + 1);
+        g_config.rowAmount = std::stoi(str);
+        if (g_config.rowAmount <= 0) {
+            MessageBox(hwnd, L"Το πλήθος εβδομάδων πρέπει να είναι μεγαλύτερο του μηδενός", L"Σφάλμα", MB_ICONERROR | MB_OK);
             return false;
         }
-        g_config.columnSizes[i] = percent;
-        sizeSum += percent;
-    }
 
-    for (int i = 0; i < 7; ++i) {
-        g_config.columnSizes[i] /= sizeSum;
+        static const wchar_t *days[] = {
+            L"Δευτέρας", L"Τρίτης", L"Τετάρτης", L"Πέμπτης", L"Παρασκευής", L"Σαββάτου", L"Κυριακής"
+        };
+        static const unsigned idents[] = {
+            ID_PERCENT_MON, ID_PERCENT_TUE, ID_PERCENT_WED, ID_PERCENT_THU, ID_PERCENT_FRI, ID_PERCENT_SAT, ID_PERCENT_SUN
+        };
+        float sizeSum = 0;
+        for (int i = 0; i < 7; ++i) {
+            str.resize(ComboBox_GetTextLength(GetDlgItem(hwnd, idents[i])));
+            ComboBox_GetText(GetDlgItem(hwnd, idents[i]), &str[0], str.size() + 1);
+            float percent;
+            try {
+                percent = std::stof(str);
+            } catch (...) {
+                MessageBox(hwnd, (std::wstring(L"Το μέγεθος ") + days[i] + L" πρέπει να είναι αριθμός").c_str(), L"Σφάλμα", MB_ICONERROR | MB_OK);
+                return false;
+            }
+
+            if (percent <= 0) {
+                MessageBox(hwnd, (std::wstring(L"Το μέγεθος ") + days[i] + L" πρέπει να είναι μεγαλύτερο του μηδενός").c_str(), L"Σφάλμα", MB_ICONERROR | MB_OK);
+                return false;
+            }
+            g_config.columnSizes[i] = percent;
+            sizeSum += percent;
+        }
+
+        for (int i = 0; i < 7; ++i) {
+            g_config.columnSizes[i] /= sizeSum;
+        }
+    } catch (...) {
+        MessageBox(hwnd, L"Δεν πρέπει να υπάρχουν κενά πεδία τιμών", L"Σφάλμα", MB_ICONERROR | MB_OK);
+        return false;
     }
 
     return true;
