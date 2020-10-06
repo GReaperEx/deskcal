@@ -35,14 +35,61 @@ public:
 public:
     CalDate() {
         _listed = false;
+        _color = nullptr;
+        _font = nullptr;
     }
-    CalDate(const Date& _date, const std::wstring& text, const Color& color, const FontInfo& font, bool listed = false)
-    : date(_date), _text(text), _color(color), _font(font), _listed(listed)
-    {}
+    CalDate(const Date& _date, const std::wstring& text)
+    : date(_date), _text(text) {
+        _listed = false;
+        _color = nullptr;
+        _font = nullptr;
+    }
+    CalDate(const CalDate& other) {
+        date = other.date;
+        _text = other._text;
+        if (other._color) {
+            _color = new Color(*other._color);
+        } else {
+            _color = nullptr;
+        }
+        if (other._font) {
+            _font = new FontInfo(*other._font);
+        } else {
+            _font = nullptr;
+        }
+        _listed = other._listed;
+    }
 
-    void renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const;
-    void renderGraphics(HWND hwnd, int x, int y, int w, int h) const;
-    void renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const;
+    CalDate& operator= (const CalDate& other) {
+        date = other.date;
+        _text = other._text;
+        if (other._color) {
+            _color = new Color(*other._color);
+        } else {
+            _color = nullptr;
+        }
+        if (other._font) {
+            _font = new FontInfo(*other._font);
+        } else {
+            _font = nullptr;
+        }
+        _listed = other._listed;
+
+        return *this;
+    }
+
+    ~CalDate() {
+        if (_color) {
+            delete _color;
+        }
+        if (_font) {
+            delete _font;
+        }
+    }
+
+    void renderGraphics(WBitmap& canvas, int x, int y, int w, int h, const Color& defaultColor, const Color& weekendColor) const;
+    void renderGraphics(HWND hwnd, int x, int y, int w, int h, const Color& defaultColor, const Color& weekendColor) const;
+    void renderText(HWND hwnd, int x, int y, int w, int h, int numSize, const FontInfo& defaultFont) const;
 
     bool operator< (const Date& otherDate) const {
         return date < otherDate;
@@ -52,24 +99,37 @@ public:
     }
 
     void setColor(Color color) {
-        _color = color;
+        if (!_color) {
+            _color = new Color(color);
+        } else {
+            *_color = color;
+        }
     }
 
-    Color getColor() const {
+    const Color* getColor() const {
         return _color;
     }
 
     void setFont(const FontInfo& font) {
-        _font = font;
+        if (!_font) {
+            _font = new FontInfo(font);
+        } else {
+            *_font = font;
+        }
+        *_font = font;
     }
 
-    const FontInfo& getFont() const {
+    const FontInfo* getFont() const {
         return _font;
     }
 
-    HFONT createFont() const {
-        return CreateFont(_font.size, 0, 0, 0, _font.weight, _font.italic, _font.underlined, _font.strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
-                          CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(_font.typeface).c_str());
+    HFONT createFont(const FontInfo& defaultFont) const {
+        if (_font) {
+            return CreateFont(_font->size, 0, 0, 0, _font->weight, _font->italic, _font->underlined, _font->strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
+                              CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(_font->typeface).c_str());
+        }
+        return CreateFont(defaultFont.size, 0, 0, 0, defaultFont.weight, defaultFont.italic, defaultFont.underlined, defaultFont.strikeout,
+                          GREEK_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(defaultFont.typeface).c_str());
     }
 
     const std::wstring& getText() const {
@@ -93,8 +153,8 @@ public:
 
 private:
     std::wstring _text;
-    Color _color;
-    FontInfo _font;
+    Color* _color;
+    FontInfo* _font;
     bool _listed;
 
 };

@@ -32,27 +32,27 @@ public:
         : x(_x), y(_y), w(_w), h(_h), date(_date), ptr(_ptr)
         {}
 
-        void renderGraphics(WBitmap& canvas) const {
+        void renderGraphics(WBitmap& canvas, const Color& defaultColor, const Color& weekendColor) const {
             if (ptr) {
                 auto it = std::lower_bound(ptr->begin(), ptr->end(), date);
                 if (it != ptr->end() && it->date == date) {
-                    it->renderGraphics(canvas, x, y, w, h);
+                    it->renderGraphics(canvas, x, y, w, h, defaultColor, weekendColor);
                 }
             }
         }
-        void renderGraphics(HWND hwnd) const {
+        void renderGraphics(HWND hwnd, const Color& defaultColor, const Color& weekendColor) const {
             if (ptr) {
                 auto it = std::lower_bound(ptr->begin(), ptr->end(), date);
                 if (it != ptr->end() && it->date == date) {
-                    it->renderGraphics(hwnd, x, y, w, h);
+                    it->renderGraphics(hwnd, x, y, w, h, defaultColor, weekendColor);
                 }
             }
         }
-        void renderText(HWND hwnd, int numSize) const {
+        void renderText(HWND hwnd, int numSize, const FontInfo& defaultFont) const {
             if (ptr) {
                 auto it = std::lower_bound(ptr->begin(), ptr->end(), date);
                 if (it != ptr->end() && it->date == date) {
-                    it->renderText(hwnd, x, y, w, h, numSize);
+                    it->renderText(hwnd, x, y, w, h, numSize, defaultFont);
                 }
             }
         }

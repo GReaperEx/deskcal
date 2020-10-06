@@ -4,19 +4,51 @@
 
 #include <sstream>
 
-void CalDate::renderGraphics(WBitmap& canvas, int x, int y, int w, int h) const
+void CalDate::renderGraphics(WBitmap& canvas, int x, int y, int w, int h, const Color& defaultColor, const Color& weekendColor) const
 {
-    WBitmap calSquare(w, h, _color);
-    calSquare.renderOnBmp(canvas, x, y);
+    if (_color) {
+        WBitmap calSquare(w, h, *_color);
+        calSquare.renderOnBmp(canvas, x, y);
+    } else {
+        tm curTM = {
+            0, 0, 0, date.day, date.month - 1, date.year - 1900, 0, 0, 0
+        };
+        time_t curTime = mktime(&curTM);
+        curTM = *localtime(&curTime);
+
+        if (curTM.tm_wday == 0 || curTM.tm_wday == 6) {
+            WBitmap calSquare(w, h, weekendColor);
+            calSquare.renderOnBmp(canvas, x, y);
+        } else {
+            WBitmap calSquare(w, h, defaultColor);
+            calSquare.renderOnBmp(canvas, x, y);
+        }
+    }
 }
 
-void CalDate::renderGraphics(HWND hwnd, int x, int y, int w, int h) const
+void CalDate::renderGraphics(HWND hwnd, int x, int y, int w, int h, const Color& defaultColor, const Color& weekendColor) const
 {
-    WBitmap calSquare(w, h, _color);
-    calSquare.renderOnWnd(hwnd, x, y);
+    if (_color) {
+        WBitmap calSquare(w, h, *_color);
+        calSquare.renderOnWnd(hwnd, x, y);
+    } else {
+        tm curTM = {
+            0, 0, 0, date.day, date.month - 1, date.year - 1900, 0, 0, 0
+        };
+        time_t curTime = mktime(&curTM);
+        curTM = *localtime(&curTime);
+
+        if (curTM.tm_wday == 0 || curTM.tm_wday == 6) {
+            WBitmap calSquare(w, h, weekendColor);
+            calSquare.renderOnWnd(hwnd, x, y);
+        } else {
+            WBitmap calSquare(w, h, defaultColor);
+            calSquare.renderOnWnd(hwnd, x, y);
+        }
+    }
 }
 
-void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) const
+void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize, const FontInfo& defaultFont) const
 {
     HFONT myFont = CreateFont(numSize, 0, 0, 0, FW_BOLD, FALSE, FALSE,FALSE, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
                                 CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, L"Times New Roman");
@@ -30,8 +62,7 @@ void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) con
     DrawText(hdc, std::to_wstring(date.day).c_str(), -1, &textBox, DT_LEFT | DT_TOP);
     DeleteObject(myFont);
 
-    myFont = CreateFont(_font.size, 0, 0, 0, _font.weight, _font.italic, _font.underlined, _font.strikeout, GREEK_CHARSET, OUT_OUTLINE_PRECIS,
-                        CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, utf8_to_utf16(_font.typeface).c_str());
+    myFont = createFont(defaultFont);
     SelectObject(hdc, myFont);
     textBox.top += numSize;
     textBox.left -= 5;
@@ -47,7 +78,12 @@ void CalDate::renderText(HWND hwnd, int x, int y, int w, int h, int numSize) con
             if (textBox.left > textBox.right) {
                 textBox.left = textBox.right;
             }
-            int textHeight = DrawText(hdc, line.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX) - _font.size;
+            int textHeight;
+            if (_font) {
+                textHeight = DrawText(hdc, line.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX) - _font->size;
+            } else {
+                textHeight = DrawText(hdc, line.c_str(), -1, &textBox, DT_LEFT | DT_TOP | DT_WORDBREAK | DT_NOPREFIX) - defaultFont.size;
+            }
             totalHeight += textHeight;
 
             if (totalHeight > h - numSize) {
@@ -91,7 +127,19 @@ bool CalDate::Date::operator< (const Date& other) const
 
 std::ostream& operator<< (std::ostream& outStream, const CalDate& toWrite)
 {
-    return write_escaped_string(outStream << '(' << toWrite.date << ", " << toWrite._font << ", " << toWrite._color << ", ", utf16_to_utf8(toWrite._text)) << ')';
+    outStream << '(' << toWrite.date << ", ";
+    if (toWrite._font) {
+        outStream << *toWrite._font << ", ";
+    } else {
+        outStream << "DEFAULT" << ", ";
+    }
+    if (toWrite._color) {
+        outStream << *toWrite._color << ", ";
+    } else {
+        outStream << "DEFAULT" << ", ";
+    }
+
+    return write_escaped_string(outStream, utf16_to_utf8(toWrite._text)) << ')';
 }
 
 std::istream& operator>> (std::istream& inStream, CalDate& toRead)
@@ -99,16 +147,60 @@ std::istream& operator>> (std::istream& inStream, CalDate& toRead)
     CalDate::Date date;
     FontInfo font;
     Color color;
+    bool defaultFont = false;
+    bool defaultColor = false;
     std::string text;
     char c[5];
 
-    if (!read_escaped_string(inStream >> c[0] >> date >> c[1] >> font >> c[2] >> color >> c[3], text)) {
+    if (!(inStream >> c[0] >> date >> c[1])) {
+        return inStream;
+    }
+
+    while (isspace(inStream.peek())) {
+        inStream.ignore();
+    }
+
+    if (inStream.peek() != '(') {
+        std::string temp;
+        if (!std::getline(inStream, temp, ',') || temp != "DEFAULT") {
+            inStream.setstate(std::ios::failbit);
+            return inStream;
+        }
+        defaultFont = true;
+    } else {
+        if (!(inStream >> font >> c[2])) {
+            return inStream;
+        }
+    }
+
+    while (isspace(inStream.peek())) {
+        inStream.ignore();
+    }
+
+    if (inStream.peek() != '(') {
+        std::string temp;
+        if (!std::getline(inStream, temp, ',') || temp != "DEFAULT") {
+            inStream.setstate(std::ios::failbit);
+            return inStream;
+        }
+        defaultColor = true;
+    } else {
+        if (!(inStream >> color >> c[3])) {
+            return inStream;
+        }
+    }
+
+    if (!(read_escaped_string(inStream, text) >> c[4])) {
         return inStream;
     }
 
     toRead.date = date;
-    toRead._font = font;
-    toRead._color = color;
+    if (!defaultFont) {
+        toRead.setFont(font);
+    }
+    if (!defaultColor) {
+        toRead.setColor(color);
+    }
     toRead._text = utf8_to_utf16(text);
 
     return inStream;

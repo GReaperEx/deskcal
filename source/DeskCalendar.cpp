@@ -281,27 +281,10 @@ void DeskCalendar::update()
                         + std::to_wstring(timeInfo.tm_year + 1900) + L", " + days[wDay];
 
     for (CalDate& date : _dummyDates) {
-        if (date.getText() != L"" || date.getFont() != _config.defaultFont) {
+        if (date.getText() != L"" || date.getFont() != nullptr || date.getColor() != nullptr) {
             auto it = std::lower_bound(_editedDates.begin(), _editedDates.end(), date);
             _editedDates.insert(it, date);
             _edited = true;
-        } else {
-            tm dateInfo = {
-                0, 0, 0, date.date.day, date.date.month - 1, date.date.year - 1900, 0, 0, 0
-            };
-            time_t dateTime = mktime(&dateInfo);
-            dateInfo = *localtime(&dateTime);
-
-            wDay = dateInfo.tm_wday - 1;
-            if (wDay < 0) {
-                wDay += 7;
-            }
-
-            if ((wDay < 5 && date.getColor() != _config.defaultColor) || (wDay >= 5 && date.getColor() != _config.weekendColor)) {
-                auto it = std::lower_bound(_editedDates.begin(), _editedDates.end(), date);
-                _editedDates.insert(it, date);
-                _edited = true;
-            }
         }
     }
     if (_edited) {
@@ -407,14 +390,14 @@ void DeskCalendar::update()
                 if (date.day == 1) {
                     _renderedHeaders.emplace_back(std::wstring(months[0][date.month - 1]) + L" " + std::to_wstring(date.year),
                                                   X, Y, boxW, _config.headerIndexSize, _config.monthColor);
-                    _dummyDates.emplace_back(date, L"", boxColor, _config.defaultFont);
+                    _dummyDates.emplace_back(date, L"");
 
                     int sizeH = boxH - _config.headerIndexSize - _config.marginNarrow;
                     sizeH = (sizeH < 0) ? 0 : sizeH;
                     _renderedDates.emplace_back(X, Y + _config.headerIndexSize + _config.marginNarrow,
                                                 boxW, sizeH, date, &_dummyDates);
                 } else {
-                    _dummyDates.emplace_back(date, L"", boxColor, _config.defaultFont);
+                    _dummyDates.emplace_back(date, L"");
                     _renderedDates.emplace_back(X, Y, boxW, boxH, date, &_dummyDates);
                 }
             }
@@ -477,7 +460,8 @@ void DeskCalendar::render()
                 hollow.renderOnBmp(frame, _config.marginNarrow, _config.marginNarrow, false);
                 frame.renderOnBmp(canvas, date.x - _config.marginNarrow, date.y - _config.marginNarrow);
             }
-            it->renderGraphics(canvas, date.x, date.y, date.w, date.h);
+
+            it->renderGraphics(canvas, date.x, date.y, date.w, date.h, _config.defaultColor, _config.weekendColor);
         }
     }
     canvas.renderOnWnd(_hwnd);
@@ -492,7 +476,7 @@ void DeskCalendar::render()
     for (DatePointer& date : _renderedDates) {
         auto it = std::lower_bound(date.ptr->begin(), date.ptr->end(), date.date);
         if (it != date.ptr->end() && it->date == date.date) {
-            it->renderText(_hwnd, date.x, date.y, date.w, date.h, _config.numberSize);
+            it->renderText(_hwnd, date.x, date.y, date.w, date.h, _config.numberSize, _config.defaultFont);
         }
     }
 }
@@ -544,15 +528,23 @@ void DeskCalendar::onClick(int x, int y)
 
         auto it = std::lower_bound(_selected->ptr->begin(), _selected->ptr->end(), _selected->date);
         if (it != _selected->ptr->end() && it->date == _selected->date) {
-            it->renderGraphics(_hwnd, _selected->x, _selected->y, _selected->w, _selected->h);
+            it->renderGraphics(_hwnd, _selected->x, _selected->y, _selected->w, _selected->h, _config.defaultColor, _config.weekendColor);
             if (editText != it->getText()) {
                 it->setText(editText);
                 _edited = true;
             }
-            it->renderText(_hwnd, _selected->x, _selected->y, _selected->w, _selected->h, _config.numberSize);
+            it->renderText(_hwnd, _selected->x, _selected->y, _selected->w, _selected->h, _config.numberSize, _config.defaultFont);
 
-            if (cellButtonVisible) {
-                cellButton.renderOnWnd(_hwnd, it->getColor());
+            tm curTM = {
+                0, 0, 0, it->date.day, it->date.month - 1, it->date.year - 1900, 0, 0, 0
+            };
+            time_t curTime = mktime(&curTM);
+            curTM = *localtime(&curTime);
+
+            if (curTM.tm_wday == 0 || curTM.tm_wday == 6) {
+                cellButton.renderOnWnd(_hwnd, it->getColor() != nullptr ? *(it->getColor()) : _config.weekendColor);
+            } else {
+                cellButton.renderOnWnd(_hwnd, it->getColor() != nullptr ? *(it->getColor()) : _config.defaultColor);
             }
         }
 
@@ -577,7 +569,7 @@ void DeskCalendar::onClick(int x, int y)
             defEditProc = (WNDPROC)SetWindowLongPtr(_editWnd, GWLP_WNDPROC, (LONG_PTR)editProc);
             SetFocus(_editWnd);
 
-            _editFont = it->createFont();
+            _editFont = it->createFont(_config.defaultFont);
             SendMessage(_editWnd, WM_SETFONT, WPARAM(_editFont), TRUE);
 
             Edit_SetText(_editWnd, it->getText().c_str());
@@ -603,7 +595,18 @@ void DeskCalendar::onHover(int x, int y)
                 cellButton.maskOnWnd(_hwnd);
             }
             cellButton.update(it->x + it->w - _config.numberSize, it->y, _config.numberSize, _config.numberSize);
-            cellButton.renderOnWnd(_hwnd, dateIt->getColor());
+
+            tm curTM = {
+                0, 0, 0, dateIt->date.day, dateIt->date.month - 1, dateIt->date.year - 1900, 0, 0, 0
+            };
+            time_t curTime = mktime(&curTM);
+            curTM = *localtime(&curTime);
+
+            if (curTM.tm_wday == 0 || curTM.tm_wday == 6) {
+                cellButton.renderOnWnd(_hwnd, dateIt->getColor() != nullptr ? *(dateIt->getColor()) : _config.weekendColor);
+            } else {
+                cellButton.renderOnWnd(_hwnd, dateIt->getColor() != nullptr ? *(dateIt->getColor()) : _config.defaultColor);
+            }
             cellButtonVisible = true;
 
             prevHover = &*it;
@@ -619,7 +622,7 @@ void DeskCalendar::onHover(int x, int y)
 
 std::vector<std::wstring> g_typefaces;
 DeskCalendar *g_deskcal;
-DeskCalendar::ConfigVars g_config;
+DeskCalendar::ConfigVars g_config, old_config;
 
 const std::vector<std::wstring> enumerateFonts();
 INT_PTR settingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -627,7 +630,7 @@ INT_PTR settingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void DeskCalendar::onClickSettings()
 {
     g_deskcal = this;
-    g_config = _config;
+    g_config = old_config = _config;
     g_typefaces = enumerateFonts();
     INT_PTR result = DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SETTINGS), _hwnd, settingsDlgProc);
     if (result == IDOK) {
@@ -659,13 +662,25 @@ void DeskCalendar::onClickCell(int x, int y)
             g_setDate = *dateIt;
             g_setDatePtr = *it;
             g_numSize = _config.numberSize;
+            g_config = old_config = _config;
 
             g_typefaces = enumerateFonts();
             INT_PTR result = DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DATE_SETTINGS), _hwnd, dateSettingsDlgProc);
             if (result == IDOK) {
                 *dateIt = g_setDate;
                 _edited = true;
-                cellButton.setPrevColor(g_setDate.getColor());
+
+                tm curTM = {
+                    0, 0, 0, g_setDate.date.day, g_setDate.date.month - 1, g_setDate.date.year - 1900, 0, 0, 0
+                };
+                time_t curTime = mktime(&curTM);
+                curTM = *localtime(&curTime);
+
+                if (curTM.tm_wday == 0 || curTM.tm_wday == 6) {
+                    cellButton.renderOnWnd(_hwnd, g_setDate.getColor() != nullptr ? *(g_setDate.getColor()) : _config.weekendColor);
+                } else {
+                    cellButton.renderOnWnd(_hwnd, g_setDate.getColor() != nullptr ? *(g_setDate.getColor()) : _config.defaultColor);
+                }
             }
         }
     }
@@ -698,8 +713,21 @@ INT_PTR dateSettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_INITDIALOG:
     {
-        FontInfo font = g_setDate.getFont();
-        Color color = g_setDate.getColor();
+        FontInfo font = g_setDate.getFont() != nullptr ? *(g_setDate.getFont()) : g_config.defaultFont;
+        Color color;
+
+        tm curTM = {
+            0, 0, 0, g_setDate.date.day, g_setDate.date.month - 1, g_setDate.date.year - 1900, 0, 0, 0
+        };
+        time_t curTime = mktime(&curTM);
+        curTM = *localtime(&curTime);
+
+        if (curTM.tm_wday == 0 || curTM.tm_wday == 6) {
+            color = g_setDate.getColor() != nullptr ? *(g_setDate.getColor()) : g_config.weekendColor;
+        } else {
+            color = g_setDate.getColor() != nullptr ? *(g_setDate.getColor()) : g_config.defaultColor;
+        }
+
         bool listed = g_setDate.getListed();
         const wchar_t* months[12] = {
             L" Ιανουαρίου ", L" Φεβρουαρίου ", L" Μαρτίου ", L" Απριλίου ", L" Μαΐου ", L" Ιουνίου ",
@@ -739,20 +767,20 @@ INT_PTR dateSettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
         case IDOK:
             if (retrieveDateSettings(hwnd)) {
-                g_setDate.renderGraphics(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h);
-                g_setDate.renderText(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h, g_numSize);
+                g_setDate.renderGraphics(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h, g_config.defaultColor, g_config.weekendColor);
+                g_setDate.renderText(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h, g_numSize, g_config.defaultFont);
                 EndDialog(hwnd, IDOK);
             }
             return TRUE;
         case IDB_APPLY:
             if (retrieveDateSettings(hwnd)) {
-                g_setDate.renderGraphics(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h);
-                g_setDate.renderText(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h, g_numSize);
+                g_setDate.renderGraphics(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h, g_config.defaultColor, g_config.weekendColor);
+                g_setDate.renderText(g_hwnd, g_setDatePtr.x, g_setDatePtr.y, g_setDatePtr.w, g_setDatePtr.h, g_numSize, g_config.defaultFont);
             }
             return TRUE;
         case IDCANCEL:
-            g_setDatePtr.renderGraphics(g_hwnd);
-            g_setDatePtr.renderText(g_hwnd, g_numSize);
+            g_setDatePtr.renderGraphics(g_hwnd, old_config.defaultColor, old_config.weekendColor);
+            g_setDatePtr.renderText(g_hwnd, g_numSize, old_config.defaultFont);
             EndDialog(hwnd, IDCANCEL);
             return TRUE;
         }
@@ -762,8 +790,8 @@ INT_PTR dateSettingsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             DestroyWindow(toolWnd);
         }
         tooltips.clear();
-        g_setDatePtr.renderGraphics(g_hwnd);
-        g_setDatePtr.renderText(g_hwnd, g_numSize);
+        g_setDatePtr.renderGraphics(g_hwnd, old_config.defaultColor, old_config.weekendColor);
+        g_setDatePtr.renderText(g_hwnd, g_numSize, old_config.defaultFont);
         EndDialog(hwnd, IDCANCEL);
         return TRUE;
     }
@@ -969,8 +997,20 @@ bool retrieveDateSettings(HWND hwnd)
     }
     newColor.a = a;
 
-    g_setDate.setFont(newFont);
-    g_setDate.setColor(newColor);
+    if (newFont != g_config.defaultFont) {
+        g_setDate.setFont(newFont);
+    }
+
+    tm curTM = {
+        0, 0, 0, g_setDate.date.day, g_setDate.date.month - 1, g_setDate.date.year - 1900, 0, 0, 0
+    };
+    time_t curTime = mktime(&curTM);
+    curTM = *localtime(&curTime);
+
+    if (((curTM.tm_wday == 0 || curTM.tm_wday == 6) && newColor != g_config.weekendColor) ||
+        ((curTM.tm_wday > 0 && curTM.tm_wday < 6) && newColor != g_config.defaultColor)) {
+        g_setDate.setColor(newColor);
+    }
     g_setDate.setListed(newList);
 
     return true;
@@ -1052,7 +1092,7 @@ bool retrieveSettings(HWND hwnd)
         L"Το κόκκινο μηνός", L"Το πράσινο μηνός", L"Το μπλε μηνός", L"Η διαφάνεια μηνός",
         L"Το κόκκινο ημέρας", L"Το πράσινο ημέρας", L"Το μπλε ημέρας", L"Η διαφάνεια ημέρας"
     };
-    BYTE *colorPtrs[] = {
+    int *colorPtrs[] = {
         &g_config.defaultColor.r, &g_config.defaultColor.g, &g_config.defaultColor.b, &g_config.defaultColor.a,
         &g_config.weekendColor.r, &g_config.weekendColor.g, &g_config.weekendColor.b, &g_config.weekendColor.a,
         &g_config.monthColor.r, &g_config.monthColor.g, &g_config.monthColor.b, &g_config.monthColor.a,
