@@ -71,14 +71,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_CREATE:
+        SetTimer(hWnd, 1, 1000*60, NULL);
+    break;
+    case WM_TIMER:
+        calendarPtr->update();
+        calendarPtr->render();
+    break;
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:
     case WM_MOUSEMOVE:
+        KillTimer(hWnd, 1);
         calendarPtr->handleInput(hWnd, message, wParam, lParam);
+        SetTimer(hWnd, 1, 1000*60, NULL);
     break;
     case WM_ERASEBKGND:
     break;
     case WM_DESTROY:
+        KillTimer(hWnd, 1);
         calendarPtr->update();
         PostQuitMessage(0);
     break;
