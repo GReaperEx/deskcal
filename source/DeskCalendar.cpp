@@ -632,7 +632,7 @@ void DeskCalendar::onClickSettings()
     g_deskcal = this;
     g_config = old_config = _config;
     g_typefaces = enumerateFonts();
-    INT_PTR result = DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SETTINGS), _hwnd, settingsDlgProc);
+    INT_PTR result = DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_SETTINGS), _hwnd, (DLGPROC)settingsDlgProc);
     if (result == IDOK) {
         _config = g_config;
         saveConfig();
@@ -665,7 +665,7 @@ void DeskCalendar::onClickCell(int x, int y)
             g_config = old_config = _config;
 
             g_typefaces = enumerateFonts();
-            INT_PTR result = DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DATE_SETTINGS), _hwnd, dateSettingsDlgProc);
+            INT_PTR result = DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DATE_SETTINGS), _hwnd, (DLGPROC)dateSettingsDlgProc);
             if (result == IDOK) {
                 *dateIt = g_setDate;
                 _edited = true;
