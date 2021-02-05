@@ -5,6 +5,12 @@ resource-light and (hopefully) reliable.
 
 Currently in Greek only. Currently(perhaps indefinitely) for Windows only.
 
+## Needed libraries
+
+* Windows 7 or later
+* PNG++ (which uses libpng)
+* zlib (don't ask me why)
+
 ## Copyright Notice
 
 Copyright (C) 2020-2021, GReaperEx(Marios F.)
