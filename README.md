@@ -5,6 +5,8 @@ resource-light and (hopefully) reliable.
 
 Currently in Greek only. Currently(perhaps indefinitely) for Windows only.
 
+![deskcal screenshot](https://raw.githubusercontent.com/GReaperEx/deskcal/master/resources/screenshot.jpg)
+
 ## Needed libraries
 
 * Windows 7 or later
