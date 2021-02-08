@@ -62,25 +62,25 @@ bool DeskCalendar::loadConfig()
                 _config.marginWide = newVal;
             } else if (input == "marginLeft") {
                 int newVal;
-                if (!(line >> newVal) || newVal <= 0) {
+                if (!(line >> newVal) || newVal < 0) {
                     continue;
                 }
                 _config.marginLeft = newVal;
             } else if (input == "marginTop") {
                 int newVal;
-                if (!(line >> newVal) || newVal <= 0) {
+                if (!(line >> newVal) || newVal < 0) {
                     continue;
                 }
                 _config.marginTop = newVal;
             } else if (input == "marginRight") {
                 int newVal;
-                if (!(line >> newVal) || newVal <= 0) {
+                if (!(line >> newVal) || newVal < 0) {
                     continue;
                 }
                 _config.marginRight = newVal;
             } else if (input == "marginBottom") {
                 int newVal;
-                if (!(line >> newVal) || newVal <= 0) {
+                if (!(line >> newVal) || newVal < 0) {
                     continue;
                 }
                 _config.marginBottom = newVal;
